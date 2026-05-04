@@ -1,0 +1,14 @@
+import { getAuthUser } from "@/lib/auth";
+import { getQuestionStats } from "@/lib/exam/repository";
+
+export const dynamic = "force-dynamic";
+
+export async function GET() {
+  const user = await getAuthUser();
+  if (!user) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  return Response.json({
+    questions: await getQuestionStats(user.email),
+  });
+}

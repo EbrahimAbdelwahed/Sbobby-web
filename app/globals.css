@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+:root {
+  /* Sbobby design tokens — mirrors iOS palette */
+  --sb-bg: #0f0f12;
+  --sb-surface: #1c1c21;
+  --sb-surface2: #26262d;
+  --sb-border: #2e2e38;
+  --sb-accent: #6366f1;
+  --sb-accent-dim: #4f51c8;
+  --sb-text: #e8e8f0;
+  --sb-text-dim: #8888a8;
+  --sb-green: #22c55e;
+  --sb-yellow: #eab308;
+  --sb-red: #ef4444;
+  --sb-orange: #f97316;
+
+  --background: var(--sb-bg);
+  --foreground: var(--sb-text);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+body {
+  background: var(--sb-bg);
+  color: var(--sb-text);
+  font-family: system-ui, -apple-system, sans-serif;
+}

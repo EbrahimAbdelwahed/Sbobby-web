@@ -1,0 +1,2276 @@
+{
+  "subjects": [
+    {
+      "id": "anatomia",
+      "name": "Anatomia",
+      "modules": [
+        {
+          "id": "anatomia_generalita_e_organizzazione_del_corpo_umano",
+          "subjectId": "anatomia",
+          "title": "Generalità e Organizzazione del Corpo Umano",
+          "sourcePath": "sbobine/anatomia/anatomia_syllabus.md",
+          "topics": [
+            {
+              "id": "anatomia_livelli_di_organizzazione_cellulare_tissutale_di_organo_di_apparato",
+              "title": "Livelli di organizzazione (cellulare, tissutale, di organo, di apparato)",
+              "module_id": "anatomia_generalita_e_organizzazione_del_corpo_umano",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_terminologia_anatomica_e_piani_di_riferimento",
+              "title": "Terminologia anatomica e piani di riferimento",
+              "module_id": "anatomia_generalita_e_organizzazione_del_corpo_umano",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_posizione_direzione_e_assi_corporei_loro_rilevanza_clinica",
+              "title": "Posizione, direzione e assi corporei — loro rilevanza clinica",
+              "module_id": "anatomia_generalita_e_organizzazione_del_corpo_umano",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_esame_posturale_e_proporzioni_corporee",
+              "title": "Esame posturale e proporzioni corporee",
+              "module_id": "anatomia_generalita_e_organizzazione_del_corpo_umano",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_accrescimento_del_corpo_e_della_sua_superficie",
+              "title": "Accrescimento del corpo e della sua superficie",
+              "module_id": "anatomia_generalita_e_organizzazione_del_corpo_umano",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_regioni_anatomiche_di_superficie_e_punti_di_repere_ossei",
+              "title": "Regioni anatomiche di superficie e punti di repere ossei",
+              "module_id": "anatomia_generalita_e_organizzazione_del_corpo_umano",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_parete_corporea_e_cavita_corporee",
+              "title": "Parete corporea e cavità corporee",
+              "module_id": "anatomia_generalita_e_organizzazione_del_corpo_umano",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_cavita_corporee_definizione_genesi_e_rapporti",
+              "title": "Cavità corporee: definizione, genesi e rapporti",
+              "module_id": "anatomia_generalita_e_organizzazione_del_corpo_umano",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_filogenesi_ed_ontogenesi_dell_uomo",
+              "title": "Filogenesi ed Ontogenesi dell'uomo",
+              "module_id": "anatomia_generalita_e_organizzazione_del_corpo_umano",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_sviluppo_embrionale_somitogenesi_tubo_neurale_dermatomi",
+              "title": "Sviluppo embrionale: somitogenesi, tubo neurale, dermatomi",
+              "module_id": "anatomia_generalita_e_organizzazione_del_corpo_umano",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "anatomia_lo_scheletro_prof_cusella",
+          "subjectId": "anatomia",
+          "title": "Lo Scheletro (prof. Cusella)",
+          "sourcePath": "sbobine/anatomia/anatomia_syllabus.md",
+          "topics": [
+            {
+              "id": "anatomia_sviluppo_dell_apparato_scheletrico_e_sua_ossificazione",
+              "title": "Sviluppo dell'apparato scheletrico e sua ossificazione",
+              "module_id": "anatomia_lo_scheletro_prof_cusella",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_accrescimento_e_rimodellamento_delle_ossa",
+              "title": "Accrescimento e rimodellamento delle ossa",
+              "module_id": "anatomia_lo_scheletro_prof_cusella",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_funzioni_del_tessuto_osseo",
+              "title": "Funzioni del tessuto osseo",
+              "module_id": "anatomia_lo_scheletro_prof_cusella",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_classificazione_delle_ossa",
+              "title": "Classificazione delle ossa",
+              "module_id": "anatomia_lo_scheletro_prof_cusella",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_struttura_delle_ossa_lunghe_osso_compatto_e_spugnoso",
+              "title": "Struttura delle ossa lunghe (osso compatto e spugnoso)",
+              "module_id": "anatomia_lo_scheletro_prof_cusella",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_sviluppo_e_senescenza_dell_apparato_locomotore",
+              "title": "Sviluppo e senescenza dell'apparato locomotore",
+              "module_id": "anatomia_lo_scheletro_prof_cusella",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_importanza_della_postura_corretta",
+              "title": "Importanza della postura corretta",
+              "module_id": "anatomia_lo_scheletro_prof_cusella",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_basi_anatomo_funzionali_dell_artrosi",
+              "title": "Basi anatomo-funzionali dell'artrosi",
+              "module_id": "anatomia_lo_scheletro_prof_cusella",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_osteoporosi_cause_e_conseguenze",
+              "title": "Osteoporosi: cause e conseguenze",
+              "module_id": "anatomia_lo_scheletro_prof_cusella",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_processi_di_riparazione_delle_fratture",
+              "title": "Processi di riparazione delle fratture",
+              "module_id": "anatomia_lo_scheletro_prof_cusella",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_macroscopica_sistematica_delle_ossa_del_tronco",
+              "title": "Anatomia macroscopica sistematica delle ossa del tronco",
+              "module_id": "anatomia_lo_scheletro_prof_cusella",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_macroscopica_sistematica_degli_arti_superiori_e_inferiori",
+              "title": "Anatomia macroscopica sistematica degli arti superiori e inferiori",
+              "module_id": "anatomia_lo_scheletro_prof_cusella",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_biomeccanica_della_colonna_vertebrale_porzione_mobile_e_fissa",
+              "title": "Biomeccanica della colonna vertebrale (porzione mobile e fissa)",
+              "module_id": "anatomia_lo_scheletro_prof_cusella",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "anatomia_articolazioni_e_biomeccanica",
+          "subjectId": "anatomia",
+          "title": "Articolazioni e Biomeccanica",
+          "sourcePath": "sbobine/anatomia/anatomia_syllabus.md",
+          "topics": [
+            {
+              "id": "anatomia_classificazione_e_composizione_delle_articolazioni",
+              "title": "Classificazione e composizione delle articolazioni",
+              "module_id": "anatomia_articolazioni_e_biomeccanica",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_microscopica_delle_articolazioni",
+              "title": "Anatomia microscopica delle articolazioni",
+              "module_id": "anatomia_articolazioni_e_biomeccanica",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_ossa_sesamoidee_e_loro_ruolo",
+              "title": "Ossa sesamoidee e loro ruolo",
+              "module_id": "anatomia_articolazioni_e_biomeccanica",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_concetto_di_lussazione",
+              "title": "Concetto di lussazione",
+              "module_id": "anatomia_articolazioni_e_biomeccanica",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_principi_di_meccanica_articolare_e_leve",
+              "title": "Principi di meccanica articolare e leve",
+              "module_id": "anatomia_articolazioni_e_biomeccanica",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_relazione_tra_forma_e_gradi_di_liberta_articolari",
+              "title": "Relazione tra forma e gradi di libertà articolari",
+              "module_id": "anatomia_articolazioni_e_biomeccanica",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_concetti_di_movimento_carico_e_scarico",
+              "title": "Concetti di movimento, carico e scarico",
+              "module_id": "anatomia_articolazioni_e_biomeccanica",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_sistematica_delle_strutture_articolari",
+              "title": "Anatomia sistematica delle strutture articolari",
+              "module_id": "anatomia_articolazioni_e_biomeccanica",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_movimento_articolare_dedotto_dalla_forma",
+              "title": "Movimento articolare dedotto dalla forma",
+              "module_id": "anatomia_articolazioni_e_biomeccanica",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_elementi_accessori_legamenti_menischi_cercini",
+              "title": "Elementi accessori: legamenti, menischi, cercini",
+              "module_id": "anatomia_articolazioni_e_biomeccanica",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_muscoli_promozione_e_antagonismo_del_movimento",
+              "title": "Muscoli: promozione e antagonismo del movimento",
+              "module_id": "anatomia_articolazioni_e_biomeccanica",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "anatomia_muscolatura_scheletrica",
+          "subjectId": "anatomia",
+          "title": "Muscolatura Scheletrica",
+          "sourcePath": "sbobine/anatomia/anatomia_syllabus.md",
+          "topics": [
+            {
+              "id": "anatomia_microscopica_del_muscolo_scheletrico",
+              "title": "Anatomia microscopica del muscolo scheletrico",
+              "module_id": "anatomia_muscolatura_scheletrica",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_contrazione_muscolare_e_suo_controllo_nervoso",
+              "title": "Contrazione muscolare e suo controllo nervoso",
+              "module_id": "anatomia_muscolatura_scheletrica",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_tipi_di_fibre_muscolari",
+              "title": "Tipi di fibre muscolari",
+              "module_id": "anatomia_muscolatura_scheletrica",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_muscoli_pennati_e_muscoli_a_fibre_parallele",
+              "title": "Muscoli pennati e muscoli a fibre parallele",
+              "module_id": "anatomia_muscolatura_scheletrica",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_tendini",
+              "title": "Tendini",
+              "module_id": "anatomia_muscolatura_scheletrica",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_fasce_muscolari_e_guaine_tendinee",
+              "title": "Fasce muscolari e guaine tendinee",
+              "module_id": "anatomia_muscolatura_scheletrica",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_borse_sinoviali",
+              "title": "Borse sinoviali",
+              "module_id": "anatomia_muscolatura_scheletrica",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_sistematica_dei_muscoli_del_tronco",
+              "title": "Anatomia sistematica dei muscoli del tronco",
+              "module_id": "anatomia_muscolatura_scheletrica",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_sistematica_dei_muscoli_degli_arti",
+              "title": "Anatomia sistematica dei muscoli degli arti",
+              "module_id": "anatomia_muscolatura_scheletrica",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_origine_inserzione_e_azione_prevalente_dei_muscoli",
+              "title": "Origine, inserzione e azione prevalente dei muscoli",
+              "module_id": "anatomia_muscolatura_scheletrica",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_sinergie_e_antagonismi_muscolari",
+              "title": "Sinergie e antagonismi muscolari",
+              "module_id": "anatomia_muscolatura_scheletrica",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "anatomia_sistema_nervoso_centrale_e_periferico_prof_cusella",
+          "subjectId": "anatomia",
+          "title": "Sistema Nervoso Centrale e Periferico (prof. Cusella)",
+          "sourcePath": "sbobine/anatomia/anatomia_syllabus.md",
+          "topics": [
+            {
+              "id": "anatomia_il_neurone_e_le_proprieta_delle_cellule_nervose",
+              "title": "Il neurone e le proprietà delle cellule nervose",
+              "module_id": "anatomia_sistema_nervoso_centrale_e_periferico_prof_cusella",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_tipi_di_neuroni",
+              "title": "Tipi di neuroni",
+              "module_id": "anatomia_sistema_nervoso_centrale_e_periferico_prof_cusella",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_microscopica_del_tessuto_nervoso",
+              "title": "Anatomia microscopica del tessuto nervoso",
+              "module_id": "anatomia_sistema_nervoso_centrale_e_periferico_prof_cusella",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_architettura_generale_del_snc_e_periferico",
+              "title": "Architettura generale del SNC e periferico",
+              "module_id": "anatomia_sistema_nervoso_centrale_e_periferico_prof_cusella",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_sviluppo_del_sistema_nervoso",
+              "title": "Sviluppo del sistema nervoso",
+              "module_id": "anatomia_sistema_nervoso_centrale_e_periferico_prof_cusella",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_cellule_delle_creste_neurali_e_loro_derivati",
+              "title": "Cellule delle creste neurali e loro derivati",
+              "module_id": "anatomia_sistema_nervoso_centrale_e_periferico_prof_cusella",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_origine_e_composizione_del_nervo_spinale",
+              "title": "Origine e composizione del nervo spinale",
+              "module_id": "anatomia_sistema_nervoso_centrale_e_periferico_prof_cusella",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_concetti_di_neuromero_miomero_dermatomero",
+              "title": "Concetti di neuromero, miomero, dermatomero",
+              "module_id": "anatomia_sistema_nervoso_centrale_e_periferico_prof_cusella",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_sistematica_del_sn_periferico_plessi",
+              "title": "Sistematica del SN periferico (plessi)",
+              "module_id": "anatomia_sistema_nervoso_centrale_e_periferico_prof_cusella",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_sistema_nervoso_autonomo_struttura_e_funzioni",
+              "title": "Sistema nervoso autonomo: struttura e funzioni",
+              "module_id": "anatomia_sistema_nervoso_centrale_e_periferico_prof_cusella",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_ruolo_del_sna_nella_termoregolazione",
+              "title": "Ruolo del SNA nella termoregolazione",
+              "module_id": "anatomia_sistema_nervoso_centrale_e_periferico_prof_cusella",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_ruolo_del_sna_nella_vasomotilita",
+              "title": "Ruolo del SNA nella vasomotilità",
+              "module_id": "anatomia_sistema_nervoso_centrale_e_periferico_prof_cusella",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "anatomia_topografica_del_torace_prof_micheletti",
+          "subjectId": "anatomia",
+          "title": "Anatomia Topografica del Torace (prof. Micheletti)",
+          "sourcePath": "sbobine/anatomia/anatomia_syllabus.md",
+          "topics": [
+            {
+              "id": "anatomia_componente_scheletrica_della_parete_toracica",
+              "title": "Componente scheletrica della parete toracica",
+              "module_id": "anatomia_topografica_del_torace_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_muscolatura_coinvolta_nella_respirazione",
+              "title": "Muscolatura coinvolta nella respirazione",
+              "module_id": "anatomia_topografica_del_torace_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_organizzazione_e_funzioni_dell_apparato_respiratorio",
+              "title": "Organizzazione e funzioni dell'apparato respiratorio",
+              "module_id": "anatomia_topografica_del_torace_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_di_superficie_del_torace_punti_di_repere",
+              "title": "Anatomia di superficie del torace: punti di repere",
+              "module_id": "anatomia_topografica_del_torace_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_mammella_parenchima_dotti_vascolarizzazione",
+              "title": "Mammella: parenchima, dotti, vascolarizzazione",
+              "module_id": "anatomia_topografica_del_torace_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_linfonodi_della_mammella",
+              "title": "Linfonodi della mammella",
+              "module_id": "anatomia_topografica_del_torace_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_innervazione_della_mammella",
+              "title": "Innervazione della mammella",
+              "module_id": "anatomia_topografica_del_torace_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_parete_toracica_innervazione_e_vascolarizzazione",
+              "title": "Parete toracica: innervazione e vascolarizzazione",
+              "module_id": "anatomia_topografica_del_torace_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_vie_aeree_superiori",
+              "title": "Vie aeree superiori",
+              "module_id": "anatomia_topografica_del_torace_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_cavita_nasale_e_laringe",
+              "title": "Cavità nasale e laringe",
+              "module_id": "anatomia_topografica_del_torace_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_cartilagini_e_muscoli_intrinseci_della_laringe",
+              "title": "Cartilagini e muscoli intrinseci della laringe",
+              "module_id": "anatomia_topografica_del_torace_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_topografia_della_laringe",
+              "title": "Topografia della laringe",
+              "module_id": "anatomia_topografica_del_torace_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_mediastino_rapporti_vascolarizzazione_innervazione",
+              "title": "Mediastino: rapporti, vascolarizzazione, innervazione",
+              "module_id": "anatomia_topografica_del_torace_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_linfonodi_del_tratto_tracheale_e_broncopolmonare",
+              "title": "Linfonodi del tratto tracheale e broncopolmonare",
+              "module_id": "anatomia_topografica_del_torace_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_trachea_e_bronchi",
+              "title": "Trachea e bronchi",
+              "module_id": "anatomia_topografica_del_torace_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_polmoni_parenchima_suddivisione_bronchiale_alveoli",
+              "title": "Polmoni: parenchima, suddivisione bronchiale, alveoli",
+              "module_id": "anatomia_topografica_del_torace_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_pleura_e_apparato_sospensore",
+              "title": "Pleura e apparato sospensore",
+              "module_id": "anatomia_topografica_del_torace_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_seni_pleurici",
+              "title": "Seni pleurici",
+              "module_id": "anatomia_topografica_del_torace_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_centri_del_respiro_e_controllo_del_riflesso_respiratorio",
+              "title": "Centri del respiro e controllo del riflesso respiratorio",
+              "module_id": "anatomia_topografica_del_torace_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "anatomia_il_cuore_prof_ceccarelli",
+          "subjectId": "anatomia",
+          "title": "Il Cuore (prof. Ceccarelli)",
+          "sourcePath": "sbobine/anatomia/anatomia_syllabus.md",
+          "topics": [
+            {
+              "id": "anatomia_embriologia_del_cuore",
+              "title": "Embriologia del cuore",
+              "module_id": "anatomia_il_cuore_prof_ceccarelli",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_pericardio_vascolarizzazione_e_innervazione",
+              "title": "Pericardio: vascolarizzazione e innervazione",
+              "module_id": "anatomia_il_cuore_prof_ceccarelli",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_facce_e_margini_cardiaci",
+              "title": "Facce e margini cardiaci",
+              "module_id": "anatomia_il_cuore_prof_ceccarelli",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_struttura_e_organizzazione_muscolare_del_cuore",
+              "title": "Struttura e organizzazione muscolare del cuore",
+              "module_id": "anatomia_il_cuore_prof_ceccarelli",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_scheletro_fibroso_cardiaco_morfologia_e_funzioni",
+              "title": "Scheletro fibroso cardiaco: morfologia e funzioni",
+              "module_id": "anatomia_il_cuore_prof_ceccarelli",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_proprieta_morfologiche_delle_camere_cardiache",
+              "title": "Proprietà morfologiche delle camere cardiache",
+              "module_id": "anatomia_il_cuore_prof_ceccarelli",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_proprieta_strutturali_e_funzionali_delle_camere_cardiache",
+              "title": "Proprietà strutturali e funzionali delle camere cardiache",
+              "module_id": "anatomia_il_cuore_prof_ceccarelli",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_sistemi_valvolari_morfologia_e_dinamica_funzionale",
+              "title": "Sistemi valvolari: morfologia e dinamica funzionale",
+              "module_id": "anatomia_il_cuore_prof_ceccarelli",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_circolo_coronarico_aspetti_morfologici",
+              "title": "Circolo coronarico: aspetti morfologici",
+              "module_id": "anatomia_il_cuore_prof_ceccarelli",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_circolo_coronarico_dinamica_funzionale",
+              "title": "Circolo coronarico: dinamica funzionale",
+              "module_id": "anatomia_il_cuore_prof_ceccarelli",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_drenaggio_linfatico_cardiaco",
+              "title": "Drenaggio linfatico cardiaco",
+              "module_id": "anatomia_il_cuore_prof_ceccarelli",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_innervazione_del_cuore",
+              "title": "Innervazione del cuore",
+              "module_id": "anatomia_il_cuore_prof_ceccarelli",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_sistema_di_conduzione_cardiaco",
+              "title": "Sistema di conduzione cardiaco",
+              "module_id": "anatomia_il_cuore_prof_ceccarelli",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_vascolarizzazione_nodale",
+              "title": "Vascolarizzazione nodale",
+              "module_id": "anatomia_il_cuore_prof_ceccarelli",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_clinica_del_cuore",
+              "title": "Anatomia clinica del cuore",
+              "module_id": "anatomia_il_cuore_prof_ceccarelli",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "anatomia_apparato_circolatorio_prof_micheletti",
+          "subjectId": "anatomia",
+          "title": "Apparato Circolatorio (prof. Micheletti)",
+          "sourcePath": "sbobine/anatomia/anatomia_syllabus.md",
+          "topics": [
+            {
+              "id": "anatomia_architettura_del_sistema_circolatorio",
+              "title": "Architettura del sistema circolatorio",
+              "module_id": "anatomia_apparato_circolatorio_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_organizzazione_della_struttura_vascolare",
+              "title": "Organizzazione della struttura vascolare",
+              "module_id": "anatomia_apparato_circolatorio_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_tipi_di_vasi_capillari",
+              "title": "Tipi di vasi capillari",
+              "module_id": "anatomia_apparato_circolatorio_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_correlazione_morfologiche_dei_vasi_capillari",
+              "title": "Correlazione morfologiche dei vasi capillari",
+              "module_id": "anatomia_apparato_circolatorio_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_architettura_del_sistema_arterioso",
+              "title": "Architettura del sistema arterioso",
+              "module_id": "anatomia_apparato_circolatorio_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_circolo_arterioso_sistemico",
+              "title": "Circolo arterioso sistemico",
+              "module_id": "anatomia_apparato_circolatorio_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_architettura_del_sistema_venoso",
+              "title": "Architettura del sistema venoso",
+              "module_id": "anatomia_apparato_circolatorio_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_circoli_venosi_profondi_e_superficiali",
+              "title": "Circoli venosi profondi e superficiali",
+              "module_id": "anatomia_apparato_circolatorio_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_sistemi_valvolari_venosi",
+              "title": "Sistemi valvolari venosi",
+              "module_id": "anatomia_apparato_circolatorio_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_arteria_succlavia_e_suoi_rami",
+              "title": "Arteria succlavia e suoi rami",
+              "module_id": "anatomia_apparato_circolatorio_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_vena_ascellare_cefalica_basilica",
+              "title": "Vena ascellare, cefalica, basilica",
+              "module_id": "anatomia_apparato_circolatorio_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_principali_affluenti_venosi_e_territori_di_drenaggio",
+              "title": "Principali affluenti venosi e territori di drenaggio",
+              "module_id": "anatomia_apparato_circolatorio_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_rami_muscolari_delle_arterie_iliache",
+              "title": "Rami muscolari delle arterie iliache",
+              "module_id": "anatomia_apparato_circolatorio_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_triangolo_di_scarpa",
+              "title": "Triangolo di Scarpa",
+              "module_id": "anatomia_apparato_circolatorio_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_arteria_femorale_e_suoi_rami",
+              "title": "Arteria femorale e suoi rami",
+              "module_id": "anatomia_apparato_circolatorio_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_vena_femorale_e_suoi_affluenti",
+              "title": "Vena femorale e suoi affluenti",
+              "module_id": "anatomia_apparato_circolatorio_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_clinica_dell_apparato_circolatorio",
+              "title": "Anatomia clinica dell'apparato circolatorio",
+              "module_id": "anatomia_apparato_circolatorio_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "anatomia_apparato_linfatico_prof_ceccarelli",
+          "subjectId": "anatomia",
+          "title": "Apparato Linfatico (prof. Ceccarelli)",
+          "sourcePath": "sbobine/anatomia/anatomia_syllabus.md",
+          "topics": [
+            {
+              "id": "anatomia_architettura_del_sistema_linfatico",
+              "title": "Architettura del sistema linfatico",
+              "module_id": "anatomia_apparato_linfatico_prof_ceccarelli",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_sistema_circolatorio_linfatico",
+              "title": "Sistema circolatorio linfatico",
+              "module_id": "anatomia_apparato_linfatico_prof_ceccarelli",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_classificazione_degli_organi_linfatici",
+              "title": "Classificazione degli organi linfatici",
+              "module_id": "anatomia_apparato_linfatico_prof_ceccarelli",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_organi_linfatici_specifici_per_apparato",
+              "title": "Organi linfatici specifici per apparato",
+              "module_id": "anatomia_apparato_linfatico_prof_ceccarelli",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_morfologia_dei_linfonodi",
+              "title": "Morfologia dei linfonodi",
+              "module_id": "anatomia_apparato_linfatico_prof_ceccarelli",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_funzione_immunitaria_dei_linfonodi",
+              "title": "Funzione immunitaria dei linfonodi",
+              "module_id": "anatomia_apparato_linfatico_prof_ceccarelli",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_clinica_del_sistema_linfatico",
+              "title": "Anatomia clinica del sistema linfatico",
+              "module_id": "anatomia_apparato_linfatico_prof_ceccarelli",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "anatomia_apparato_endocrino_prof_micheletti",
+          "subjectId": "anatomia",
+          "title": "Apparato Endocrino (prof. Micheletti)",
+          "sourcePath": "sbobine/anatomia/anatomia_syllabus.md",
+          "topics": [
+            {
+              "id": "anatomia_chimica_degli_ormoni",
+              "title": "Chimica degli ormoni",
+              "module_id": "anatomia_apparato_endocrino_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_meccanismi_di_azione_degli_ormoni",
+              "title": "Meccanismi di azione degli ormoni",
+              "module_id": "anatomia_apparato_endocrino_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_correlazioni_tra_sistema_endocrino_e_nervoso",
+              "title": "Correlazioni tra sistema endocrino e nervoso",
+              "module_id": "anatomia_apparato_endocrino_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_architettura_del_sistema_endocrino",
+              "title": "Architettura del sistema endocrino",
+              "module_id": "anatomia_apparato_endocrino_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_circolo_ipotalamo_ipofisario_descrizione_morfo_funzionale",
+              "title": "Circolo ipotalamo-ipofisario: descrizione morfo-funzionale",
+              "module_id": "anatomia_apparato_endocrino_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_ipofisi_descrizione_morfo_funzionale",
+              "title": "Ipofisi: descrizione morfo-funzionale",
+              "module_id": "anatomia_apparato_endocrino_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_epifisi",
+              "title": "Epifisi",
+              "module_id": "anatomia_apparato_endocrino_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_tiroide",
+              "title": "Tiroide",
+              "module_id": "anatomia_apparato_endocrino_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_paratiroidi",
+              "title": "Paratiroidi",
+              "module_id": "anatomia_apparato_endocrino_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_surreni",
+              "title": "Surreni",
+              "module_id": "anatomia_apparato_endocrino_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_pancreas_endocrino",
+              "title": "Pancreas endocrino",
+              "module_id": "anatomia_apparato_endocrino_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_clinica_dell_apparato_endocrino",
+              "title": "Anatomia clinica dell'apparato endocrino",
+              "module_id": "anatomia_apparato_endocrino_prof_micheletti",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "anatomia_clinica",
+          "subjectId": "anatomia",
+          "title": "Anatomia Clinica",
+          "sourcePath": "sbobine/anatomia/anatomia_syllabus.md",
+          "topics": [
+            {
+              "id": "anatomia_basi_anatomiche_della_sintomatologia_delle_ernie_discali",
+              "title": "Basi anatomiche della sintomatologia delle ernie discali",
+              "module_id": "anatomia_clinica",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_ernie_addominali_basi_anatomiche",
+              "title": "Ernie addominali: basi anatomiche",
+              "module_id": "anatomia_clinica",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_tunnel_carpale_basi_anatomiche",
+              "title": "Tunnel carpale: basi anatomiche",
+              "module_id": "anatomia_clinica",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            },
+            {
+              "id": "anatomia_archi_plantari_e_loro_anomalie",
+              "title": "Archi plantari e loro anomalie",
+              "module_id": "anatomia_clinica",
+              "subject": "anatomia",
+              "source_path": "sbobine/anatomia/anatomia_syllabus.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "istologia",
+      "name": "Istologia",
+      "modules": [
+        {
+          "id": "istologia_generalita_e_tecniche_istologia",
+          "subjectId": "istologia",
+          "title": "Generalità e Tecniche (Istologia)",
+          "sourcePath": "sbobine/istologia/istologia_syllabus.md",
+          "topics": [
+            {
+              "id": "istologia_generalita_sui_tessuti",
+              "title": "Generalità sui tessuti",
+              "module_id": "istologia_generalita_e_tecniche_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_tecniche_istologiche_di_laboratorio",
+              "title": "Tecniche istologiche di laboratorio",
+              "module_id": "istologia_generalita_e_tecniche_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "istologia_metodi_di_analisi_e_tecniche_citologia",
+          "subjectId": "istologia",
+          "title": "Metodi di Analisi e Tecniche (Citologia)",
+          "sourcePath": "sbobine/istologia/istologia_syllabus.md",
+          "topics": [
+            {
+              "id": "istologia_metodo_di_analisi_morfologica",
+              "title": "Metodo di analisi morfologica",
+              "module_id": "istologia_metodi_di_analisi_e_tecniche_citologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_costituzione_chimico_fisica_del_protoplasma",
+              "title": "Costituzione chimico-fisica del protoplasma",
+              "module_id": "istologia_metodi_di_analisi_e_tecniche_citologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_tecniche_istologiche",
+              "title": "Tecniche istologiche",
+              "module_id": "istologia_metodi_di_analisi_e_tecniche_citologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_mezzi_ottici_per_lo_studio_delle_cellule_e_dei_tessuti",
+              "title": "Mezzi ottici per lo studio delle cellule e dei tessuti",
+              "module_id": "istologia_metodi_di_analisi_e_tecniche_citologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "istologia_epiteli_istologia",
+          "subjectId": "istologia",
+          "title": "Epiteli (Istologia)",
+          "sourcePath": "sbobine/istologia/istologia_syllabus.md",
+          "topics": [
+            {
+              "id": "istologia_epiteli_di_rivestimento",
+              "title": "Epiteli di rivestimento",
+              "module_id": "istologia_epiteli_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_epiteli_ghiandolari_esocrini",
+              "title": "Epiteli ghiandolari esocrini",
+              "module_id": "istologia_epiteli_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_epiteli_ghiandolari_endocrini",
+              "title": "Epiteli ghiandolari endocrini",
+              "module_id": "istologia_epiteli_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_epiteli_sensoriali",
+              "title": "Epiteli sensoriali",
+              "module_id": "istologia_epiteli_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_epiteli_particolarmente_differenziati",
+              "title": "Epiteli particolarmente differenziati",
+              "module_id": "istologia_epiteli_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "istologia_membrana_plasmatica_citologia",
+          "subjectId": "istologia",
+          "title": "Membrana Plasmatica (Citologia)",
+          "sourcePath": "sbobine/istologia/istologia_syllabus.md",
+          "topics": [
+            {
+              "id": "istologia_struttura_della_membrana_plasmatica",
+              "title": "Struttura della membrana plasmatica",
+              "module_id": "istologia_membrana_plasmatica_citologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_funzioni_della_membrana_plasmatica",
+              "title": "Funzioni della membrana plasmatica",
+              "module_id": "istologia_membrana_plasmatica_citologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_specializzazioni_della_superficie_cellulare",
+              "title": "Specializzazioni della superficie cellulare",
+              "module_id": "istologia_membrana_plasmatica_citologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "istologia_tessuto_connettivo_istologia",
+          "subjectId": "istologia",
+          "title": "Tessuto Connettivo (Istologia)",
+          "sourcePath": "sbobine/istologia/istologia_syllabus.md",
+          "topics": [
+            {
+              "id": "istologia_cellule_del_tessuto_connettivo",
+              "title": "Cellule del tessuto connettivo",
+              "module_id": "istologia_tessuto_connettivo_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_matrice_extracellulare_fibre",
+              "title": "Matrice extracellulare: fibre",
+              "module_id": "istologia_tessuto_connettivo_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_matrice_extracellulare_proteoglicani_e_glucosaminoglicani",
+              "title": "Matrice extracellulare: proteoglicani e glucosaminoglicani",
+              "module_id": "istologia_tessuto_connettivo_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_matrice_extracellulare_proteine_multiadesive",
+              "title": "Matrice extracellulare: proteine multiadesive",
+              "module_id": "istologia_tessuto_connettivo_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_tessuto_connettivo_embrionale",
+              "title": "Tessuto connettivo embrionale",
+              "module_id": "istologia_tessuto_connettivo_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_tessuto_connettivo_propriamente_detto",
+              "title": "Tessuto connettivo propriamente detto",
+              "module_id": "istologia_tessuto_connettivo_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_tessuto_adiposo",
+              "title": "Tessuto adiposo",
+              "module_id": "istologia_tessuto_connettivo_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "istologia_reticolo_endoplasmatico_citologia",
+          "subjectId": "istologia",
+          "title": "Reticolo Endoplasmatico (Citologia)",
+          "sourcePath": "sbobine/istologia/istologia_syllabus.md",
+          "topics": [
+            {
+              "id": "istologia_reticolo_endoplasmatico_liscio",
+              "title": "Reticolo endoplasmatico liscio",
+              "module_id": "istologia_reticolo_endoplasmatico_citologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_reticolo_endoplasmatico_granulare",
+              "title": "Reticolo endoplasmatico granulare",
+              "module_id": "istologia_reticolo_endoplasmatico_citologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_ribosomi",
+              "title": "Ribosomi",
+              "module_id": "istologia_reticolo_endoplasmatico_citologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_sintesi_delle_proteine",
+              "title": "Sintesi delle proteine",
+              "module_id": "istologia_reticolo_endoplasmatico_citologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "istologia_apparato_di_golgi_e_lisosomi_citologia",
+          "subjectId": "istologia",
+          "title": "Apparato di Golgi e Lisosomi (Citologia)",
+          "sourcePath": "sbobine/istologia/istologia_syllabus.md",
+          "topics": [
+            {
+              "id": "istologia_apparato_del_golgi_struttura_e_funzioni",
+              "title": "Apparato del Golgi: struttura e funzioni",
+              "module_id": "istologia_apparato_di_golgi_e_lisosomi_citologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_lisosomi_struttura_e_funzioni",
+              "title": "Lisosomi: struttura e funzioni",
+              "module_id": "istologia_apparato_di_golgi_e_lisosomi_citologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "istologia_mitocondri_e_citoscheletro_citologia",
+          "subjectId": "istologia",
+          "title": "Mitocondri e Citoscheletro (Citologia)",
+          "sourcePath": "sbobine/istologia/istologia_syllabus.md",
+          "topics": [
+            {
+              "id": "istologia_mitocondri_struttura_e_funzioni",
+              "title": "Mitocondri: struttura e funzioni",
+              "module_id": "istologia_mitocondri_e_citoscheletro_citologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_centriolo",
+              "title": "Centriolo",
+              "module_id": "istologia_mitocondri_e_citoscheletro_citologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_citoscheletro",
+              "title": "Citoscheletro",
+              "module_id": "istologia_mitocondri_e_citoscheletro_citologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_inclusi",
+              "title": "Inclusi",
+              "module_id": "istologia_mitocondri_e_citoscheletro_citologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "istologia_nucleo_citologia",
+          "subjectId": "istologia",
+          "title": "Nucleo (Citologia)",
+          "sourcePath": "sbobine/istologia/istologia_syllabus.md",
+          "topics": [
+            {
+              "id": "istologia_involucro_nucleare",
+              "title": "Involucro nucleare",
+              "module_id": "istologia_nucleo_citologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_cromatina",
+              "title": "Cromatina",
+              "module_id": "istologia_nucleo_citologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_nucleolo",
+              "title": "Nucleolo",
+              "module_id": "istologia_nucleo_citologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "istologia_tessuto_osseo_e_cartilagineo_istologia",
+          "subjectId": "istologia",
+          "title": "Tessuto Osseo e Cartilagineo (Istologia)",
+          "sourcePath": "sbobine/istologia/istologia_syllabus.md",
+          "topics": [
+            {
+              "id": "istologia_tessuto_osseo_struttura",
+              "title": "Tessuto osseo: struttura",
+              "module_id": "istologia_tessuto_osseo_e_cartilagineo_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_tessuto_cartilagineo_struttura",
+              "title": "Tessuto cartilagineo: struttura",
+              "module_id": "istologia_tessuto_osseo_e_cartilagineo_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_processi_di_ossificazione",
+              "title": "Processi di ossificazione",
+              "module_id": "istologia_tessuto_osseo_e_cartilagineo_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "istologia_sangue_e_emopoiesi_istologia",
+          "subjectId": "istologia",
+          "title": "Sangue e Emopoiesi (Istologia)",
+          "sourcePath": "sbobine/istologia/istologia_syllabus.md",
+          "topics": [
+            {
+              "id": "istologia_il_sangue_componenti_e_funzioni",
+              "title": "Il sangue: componenti e funzioni",
+              "module_id": "istologia_sangue_e_emopoiesi_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_emopoiesi",
+              "title": "Emopoiesi",
+              "module_id": "istologia_sangue_e_emopoiesi_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_tessuti_mieloide_e_linfoide",
+              "title": "Tessuti mieloide e linfoide",
+              "module_id": "istologia_sangue_e_emopoiesi_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "istologia_tessuto_muscolare_istologia",
+          "subjectId": "istologia",
+          "title": "Tessuto Muscolare (Istologia)",
+          "sourcePath": "sbobine/istologia/istologia_syllabus.md",
+          "topics": [
+            {
+              "id": "istologia_tessuto_muscolare_liscio",
+              "title": "Tessuto muscolare liscio",
+              "module_id": "istologia_tessuto_muscolare_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_tessuto_muscolare_striato_cardiaco",
+              "title": "Tessuto muscolare striato cardiaco",
+              "module_id": "istologia_tessuto_muscolare_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_tessuto_muscolare_striato_scheletrico",
+              "title": "Tessuto muscolare striato scheletrico",
+              "module_id": "istologia_tessuto_muscolare_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "istologia_tessuto_nervoso_istologia",
+          "subjectId": "istologia",
+          "title": "Tessuto Nervoso (Istologia)",
+          "sourcePath": "sbobine/istologia/istologia_syllabus.md",
+          "topics": [
+            {
+              "id": "istologia_organizzazione_generale_del_tessuto_nervoso",
+              "title": "Organizzazione generale del tessuto nervoso",
+              "module_id": "istologia_tessuto_nervoso_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_il_neurone",
+              "title": "Il neurone",
+              "module_id": "istologia_tessuto_nervoso_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_fibra_nervosa",
+              "title": "Fibra nervosa",
+              "module_id": "istologia_tessuto_nervoso_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_sinapsi",
+              "title": "Sinapsi",
+              "module_id": "istologia_tessuto_nervoso_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_terminazioni_nervose_periferiche",
+              "title": "Terminazioni nervose periferiche",
+              "module_id": "istologia_tessuto_nervoso_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_glia",
+              "title": "Glia",
+              "module_id": "istologia_tessuto_nervoso_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "istologia_ciclo_cellulare_e_attivita_biologiche_citologia",
+          "subjectId": "istologia",
+          "title": "Ciclo Cellulare e Attività Biologiche (Citologia)",
+          "sourcePath": "sbobine/istologia/istologia_syllabus.md",
+          "topics": [
+            {
+              "id": "istologia_attivita_biologiche_della_cellula",
+              "title": "Attività biologiche della cellula",
+              "module_id": "istologia_ciclo_cellulare_e_attivita_biologiche_citologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_ciclo_cellulare",
+              "title": "Ciclo cellulare",
+              "module_id": "istologia_ciclo_cellulare_e_attivita_biologiche_citologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_proliferazione_cellulare",
+              "title": "Proliferazione cellulare",
+              "module_id": "istologia_ciclo_cellulare_e_attivita_biologiche_citologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_differenziamento_cellulare",
+              "title": "Differenziamento cellulare",
+              "module_id": "istologia_ciclo_cellulare_e_attivita_biologiche_citologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_invecchiamento_cellulare",
+              "title": "Invecchiamento cellulare",
+              "module_id": "istologia_ciclo_cellulare_e_attivita_biologiche_citologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_morte_cellulare",
+              "title": "Morte cellulare",
+              "module_id": "istologia_ciclo_cellulare_e_attivita_biologiche_citologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "istologia_cellule_staminali_e_istogenesi_istologia",
+          "subjectId": "istologia",
+          "title": "Cellule Staminali e Istogenesi (Istologia)",
+          "sourcePath": "sbobine/istologia/istologia_syllabus.md",
+          "topics": [
+            {
+              "id": "istologia_cellule_staminali",
+              "title": "Cellule staminali",
+              "module_id": "istologia_cellule_staminali_e_istogenesi_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_differenziamento_cellulare",
+              "title": "Differenziamento cellulare",
+              "module_id": "istologia_cellule_staminali_e_istogenesi_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_istogenesi",
+              "title": "Istogenesi",
+              "module_id": "istologia_cellule_staminali_e_istogenesi_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_ingegneria_dei_tessuti",
+              "title": "Ingegneria dei tessuti",
+              "module_id": "istologia_cellule_staminali_e_istogenesi_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_applicazioni_cliniche_traslazionali",
+              "title": "Applicazioni cliniche traslazionali",
+              "module_id": "istologia_cellule_staminali_e_istogenesi_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "istologia_dimostrazione_pratica_istologia",
+          "subjectId": "istologia",
+          "title": "Dimostrazione Pratica (Istologia)",
+          "sourcePath": "sbobine/istologia/istologia_syllabus.md",
+          "topics": [
+            {
+              "id": "istologia_dimostrazione_in_aula_di_preparati_istologici",
+              "title": "Dimostrazione in aula di preparati istologici",
+              "module_id": "istologia_dimostrazione_pratica_istologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "istologia_embriologia",
+          "subjectId": "istologia",
+          "title": "Embriologia",
+          "sourcePath": "sbobine/istologia/istologia_syllabus.md",
+          "topics": [
+            {
+              "id": "istologia_introduzione_all_embriologia",
+              "title": "Introduzione all'embriologia",
+              "module_id": "istologia_embriologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_meiosi",
+              "title": "Meiosi",
+              "module_id": "istologia_embriologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_gametogenesi_maschile",
+              "title": "Gametogenesi maschile",
+              "module_id": "istologia_embriologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_gametogenesi_femminile",
+              "title": "Gametogenesi femminile",
+              "module_id": "istologia_embriologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_fecondazione",
+              "title": "Fecondazione",
+              "module_id": "istologia_embriologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_sviluppo_dell_embrione_da_zigote_a_blastocisti",
+              "title": "Sviluppo dell'embrione: da zigote a blastocisti",
+              "module_id": "istologia_embriologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_impianto_dell_embrione",
+              "title": "Impianto dell'embrione",
+              "module_id": "istologia_embriologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_gastrulazione",
+              "title": "Gastrulazione",
+              "module_id": "istologia_embriologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_neurulazione",
+              "title": "Neurulazione",
+              "module_id": "istologia_embriologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_derivati_dei_tre_foglietti_embrionali_primitivi",
+              "title": "Derivati dei tre foglietti embrionali primitivi",
+              "module_id": "istologia_embriologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_annessi_embrionali",
+              "title": "Annessi embrionali",
+              "module_id": "istologia_embriologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_placenta_sviluppo_e_funzioni",
+              "title": "Placenta: sviluppo e funzioni",
+              "module_id": "istologia_embriologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_organogenesi_sino_alla_8_settimana_di_sviluppo",
+              "title": "Organogenesi sino alla 8° settimana di sviluppo",
+              "module_id": "istologia_embriologia",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "istologia_modulo_integrato_bls_basic_life_support",
+          "subjectId": "istologia",
+          "title": "Modulo Integrato — BLS (Basic Life Support)",
+          "sourcePath": "sbobine/istologia/istologia_syllabus.md",
+          "topics": [
+            {
+              "id": "istologia_tecniche_di_base_della_rianimazione_cardiopolmonare",
+              "title": "Tecniche di base della rianimazione cardiopolmonare",
+              "module_id": "istologia_modulo_integrato_bls_basic_life_support",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_riconoscimento_dell_arresto_cardiaco",
+              "title": "Riconoscimento dell'arresto cardiaco",
+              "module_id": "istologia_modulo_integrato_bls_basic_life_support",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            },
+            {
+              "id": "istologia_trattamento_dell_arresto_cardiaco",
+              "title": "Trattamento dell'arresto cardiaco",
+              "module_id": "istologia_modulo_integrato_bls_basic_life_support",
+              "subject": "istologia",
+              "source_path": "sbobine/istologia/istologia_syllabus.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "biochimica",
+      "name": "Biochimica",
+      "modules": [
+        {
+          "id": "biochimica_acidi_nucleici_e_informazione_genetica_modulo_base",
+          "subjectId": "biochimica",
+          "title": "Acidi Nucleici e Informazione Genetica (Modulo Base)",
+          "sourcePath": "sbobine/biochimica/biochimica_syllabus.md",
+          "topics": [
+            {
+              "id": "biochimica_struttura_chimica_degli_acidi_nucleici",
+              "title": "Struttura chimica degli acidi nucleici",
+              "module_id": "biochimica_acidi_nucleici_e_informazione_genetica_modulo_base",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_organizzazione_degli_acidi_nucleici",
+              "title": "Organizzazione degli acidi nucleici",
+              "module_id": "biochimica_acidi_nucleici_e_informazione_genetica_modulo_base",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_meccanismi_della_duplicazione_del_dna",
+              "title": "Meccanismi della duplicazione del DNA",
+              "module_id": "biochimica_acidi_nucleici_e_informazione_genetica_modulo_base",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_principali_sistemi_cellulari_di_riparo_dei_danni_al_dna",
+              "title": "Principali sistemi cellulari di riparo dei danni al DNA",
+              "module_id": "biochimica_acidi_nucleici_e_informazione_genetica_modulo_base",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_processi_di_trascrizione_dell_informazione_genetica",
+              "title": "Processi di trascrizione dell'informazione genetica",
+              "module_id": "biochimica_acidi_nucleici_e_informazione_genetica_modulo_base",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_modificazioni_post_trascrizionali_dell_rna",
+              "title": "Modificazioni post-trascrizionali dell'RNA",
+              "module_id": "biochimica_acidi_nucleici_e_informazione_genetica_modulo_base",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_meccanismi_della_sintesi_proteica",
+              "title": "Meccanismi della sintesi proteica",
+              "module_id": "biochimica_acidi_nucleici_e_informazione_genetica_modulo_base",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_modificazioni_post_traduzionali_delle_proteine",
+              "title": "Modificazioni post-traduzionali delle proteine",
+              "module_id": "biochimica_acidi_nucleici_e_informazione_genetica_modulo_base",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "biochimica_membrane_biologiche_modulo_a",
+          "subjectId": "biochimica",
+          "title": "Membrane Biologiche (Modulo A)",
+          "sourcePath": "sbobine/biochimica/biochimica_syllabus.md",
+          "topics": [
+            {
+              "id": "biochimica_struttura_delle_membrane_biologiche",
+              "title": "Struttura delle membrane biologiche",
+              "module_id": "biochimica_membrane_biologiche_modulo_a",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_organizzazione_delle_membrane_biologiche",
+              "title": "Organizzazione delle membrane biologiche",
+              "module_id": "biochimica_membrane_biologiche_modulo_a",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_lipidi_di_membrana",
+              "title": "Lipidi di membrana",
+              "module_id": "biochimica_membrane_biologiche_modulo_a",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_proteine_di_membrana",
+              "title": "Proteine di membrana",
+              "module_id": "biochimica_membrane_biologiche_modulo_a",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_trasporto_di_soluti_attraverso_le_membrane",
+              "title": "Trasporto di soluti attraverso le membrane",
+              "module_id": "biochimica_membrane_biologiche_modulo_a",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "biochimica_biosegnalazione_modulo_b",
+          "subjectId": "biochimica",
+          "title": "Biosegnalazione (Modulo B)",
+          "sourcePath": "sbobine/biochimica/biochimica_syllabus.md",
+          "topics": [
+            {
+              "id": "biochimica_principi_della_trasduzione_del_segnale",
+              "title": "Principi della trasduzione del segnale",
+              "module_id": "biochimica_biosegnalazione_modulo_b",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_recettori_accoppiati_a_proteine_g",
+              "title": "Recettori accoppiati a proteine G",
+              "module_id": "biochimica_biosegnalazione_modulo_b",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_secondi_messaggeri",
+              "title": "Secondi messaggeri",
+              "module_id": "biochimica_biosegnalazione_modulo_b",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_recettori_accoppiati_ad_attivita_enzimatica",
+              "title": "Recettori accoppiati ad attività enzimatica",
+              "module_id": "biochimica_biosegnalazione_modulo_b",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_meccanismo_d_azione_degli_ormoni_steroidei",
+              "title": "Meccanismo d'azione degli ormoni steroidei",
+              "module_id": "biochimica_biosegnalazione_modulo_b",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_trasduzione_del_segnale_nei_sistemi_sensoriali",
+              "title": "Trasduzione del segnale nei sistemi sensoriali",
+              "module_id": "biochimica_biosegnalazione_modulo_b",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_oncogeni",
+              "title": "Oncogeni",
+              "module_id": "biochimica_biosegnalazione_modulo_b",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "biochimica_struttura_e_proprieta_delle_proteine",
+          "subjectId": "biochimica",
+          "title": "Struttura e Proprietà delle Proteine",
+          "sourcePath": "sbobine/biochimica/biochimica_syllabus.md",
+          "topics": [
+            {
+              "id": "biochimica_struttura_delle_proteine",
+              "title": "Struttura delle proteine",
+              "module_id": "biochimica_struttura_e_proprieta_delle_proteine",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_amminoacidi",
+              "title": "Amminoacidi",
+              "module_id": "biochimica_struttura_e_proprieta_delle_proteine",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_legame_peptidico",
+              "title": "Legame peptidico",
+              "module_id": "biochimica_struttura_e_proprieta_delle_proteine",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_livelli_di_organizzazione_strutturale_delle_proteine",
+              "title": "Livelli di organizzazione strutturale delle proteine",
+              "module_id": "biochimica_struttura_e_proprieta_delle_proteine",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_processi_di_denaturazione_e_ripiegamento",
+              "title": "Processi di denaturazione e ripiegamento",
+              "module_id": "biochimica_struttura_e_proprieta_delle_proteine",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_relazioni_tra_struttura_e_funzione_mioglobina_ed_emoglobina",
+              "title": "Relazioni tra struttura e funzione: mioglobina ed emoglobina",
+              "module_id": "biochimica_struttura_e_proprieta_delle_proteine",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_proteine_fibrose",
+              "title": "Proteine fibrose",
+              "module_id": "biochimica_struttura_e_proprieta_delle_proteine",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "biochimica_carboidrati_e_glicoconiugati",
+          "subjectId": "biochimica",
+          "title": "Carboidrati e Glicoconiugati",
+          "sourcePath": "sbobine/biochimica/biochimica_syllabus.md",
+          "topics": [
+            {
+              "id": "biochimica_struttura_dei_carboidrati",
+              "title": "Struttura dei carboidrati",
+              "module_id": "biochimica_carboidrati_e_glicoconiugati",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_ruolo_biologico_dei_carboidrati",
+              "title": "Ruolo biologico dei carboidrati",
+              "module_id": "biochimica_carboidrati_e_glicoconiugati",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_glucidi_di_riserva_e_strutturali",
+              "title": "Glucidi di riserva e strutturali",
+              "module_id": "biochimica_carboidrati_e_glicoconiugati",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_glicoproteine",
+              "title": "Glicoproteine",
+              "module_id": "biochimica_carboidrati_e_glicoconiugati",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_glicolipidi",
+              "title": "Glicolipidi",
+              "module_id": "biochimica_carboidrati_e_glicoconiugati",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "biochimica_lipidi_biologici",
+          "subjectId": "biochimica",
+          "title": "Lipidi Biologici",
+          "sourcePath": "sbobine/biochimica/biochimica_syllabus.md",
+          "topics": [
+            {
+              "id": "biochimica_lipidi_di_riserva",
+              "title": "Lipidi di riserva",
+              "module_id": "biochimica_lipidi_biologici",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_lipidi_strutturali",
+              "title": "Lipidi strutturali",
+              "module_id": "biochimica_lipidi_biologici",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_lipoproteine",
+              "title": "Lipoproteine",
+              "module_id": "biochimica_lipidi_biologici",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_vitamine_liposolubili",
+              "title": "Vitamine liposolubili",
+              "module_id": "biochimica_lipidi_biologici",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "biochimica_catalisi_enzimatica",
+          "subjectId": "biochimica",
+          "title": "Catalisi Enzimatica",
+          "sourcePath": "sbobine/biochimica/biochimica_syllabus.md",
+          "topics": [
+            {
+              "id": "biochimica_principi_della_catalisi_enzimatica",
+              "title": "Principi della catalisi enzimatica",
+              "module_id": "biochimica_catalisi_enzimatica",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_cinetica_enzimatica",
+              "title": "Cinetica enzimatica",
+              "module_id": "biochimica_catalisi_enzimatica",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_regolazione_dell_attivita_degli_enzimi",
+              "title": "Regolazione dell'attività degli enzimi",
+              "module_id": "biochimica_catalisi_enzimatica",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_meccanismi_di_allosteria",
+              "title": "Meccanismi di allosteria",
+              "module_id": "biochimica_catalisi_enzimatica",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_cofattori_enzimatici_tpp_nad_fad_plp_biotina_lipoato_coenzima_a",
+              "title": "Cofattori enzimatici: TPP, NAD, FAD, PLP, biotina, lipoato, coenzima A",
+              "module_id": "biochimica_catalisi_enzimatica",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "biochimica_bioenergetica_e_termodinamica",
+          "subjectId": "biochimica",
+          "title": "Bioenergetica e Termodinamica",
+          "sourcePath": "sbobine/biochimica/biochimica_syllabus.md",
+          "topics": [
+            {
+              "id": "biochimica_principi_di_bioenergetica",
+              "title": "Principi di bioenergetica",
+              "module_id": "biochimica_bioenergetica_e_termodinamica",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_principi_di_termodinamica_applicati_ai_sistemi_biologici",
+              "title": "Principi di termodinamica applicati ai sistemi biologici",
+              "module_id": "biochimica_bioenergetica_e_termodinamica",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_ruolo_dell_atp_e_degli_intermedi_ad_alta_energia",
+              "title": "Ruolo dell'ATP e degli intermedi ad alta energia",
+              "module_id": "biochimica_bioenergetica_e_termodinamica",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_reazioni_biologiche_di_ossidoriduzione",
+              "title": "Reazioni biologiche di ossidoriduzione",
+              "module_id": "biochimica_bioenergetica_e_termodinamica",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "biochimica_vie_del_metabolismo_energetico",
+          "subjectId": "biochimica",
+          "title": "Vie del Metabolismo Energetico",
+          "sourcePath": "sbobine/biochimica/biochimica_syllabus.md",
+          "topics": [
+            {
+              "id": "biochimica_ciclo_dell_acido_citrico",
+              "title": "Ciclo dell'acido citrico",
+              "module_id": "biochimica_vie_del_metabolismo_energetico",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_catena_respiratoria",
+              "title": "Catena respiratoria",
+              "module_id": "biochimica_vie_del_metabolismo_energetico",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_fosforilazione_ossidativa",
+              "title": "Fosforilazione ossidativa",
+              "module_id": "biochimica_vie_del_metabolismo_energetico",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "biochimica_metabolismo_dei_carboidrati",
+          "subjectId": "biochimica",
+          "title": "Metabolismo dei Carboidrati",
+          "sourcePath": "sbobine/biochimica/biochimica_syllabus.md",
+          "topics": [
+            {
+              "id": "biochimica_glicolisi",
+              "title": "Glicolisi",
+              "module_id": "biochimica_metabolismo_dei_carboidrati",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_gluconeogenesi",
+              "title": "Gluconeogenesi",
+              "module_id": "biochimica_metabolismo_dei_carboidrati",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_via_dei_pentoso_fosfati",
+              "title": "Via dei pentoso fosfati",
+              "module_id": "biochimica_metabolismo_dei_carboidrati",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_metabolismo_del_glicogeno",
+              "title": "Metabolismo del glicogeno",
+              "module_id": "biochimica_metabolismo_dei_carboidrati",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "biochimica_metabolismo_dei_lipidi",
+          "subjectId": "biochimica",
+          "title": "Metabolismo dei Lipidi",
+          "sourcePath": "sbobine/biochimica/biochimica_syllabus.md",
+          "topics": [
+            {
+              "id": "biochimica_ossidazione_degli_acidi_grassi",
+              "title": "Ossidazione degli acidi grassi",
+              "module_id": "biochimica_metabolismo_dei_lipidi",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_biosintesi_di_acidi_grassi",
+              "title": "Biosintesi di acidi grassi",
+              "module_id": "biochimica_metabolismo_dei_lipidi",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_biosintesi_di_trigliceridi",
+              "title": "Biosintesi di trigliceridi",
+              "module_id": "biochimica_metabolismo_dei_lipidi",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_biosintesi_di_fosfolipidi_di_membrana",
+              "title": "Biosintesi di fosfolipidi di membrana",
+              "module_id": "biochimica_metabolismo_dei_lipidi",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_biosintesi_del_colesterolo",
+              "title": "Biosintesi del colesterolo",
+              "module_id": "biochimica_metabolismo_dei_lipidi",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_chetogenesi",
+              "title": "Chetogenesi",
+              "module_id": "biochimica_metabolismo_dei_lipidi",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "biochimica_metabolismo_degli_amminoacidi",
+          "subjectId": "biochimica",
+          "title": "Metabolismo degli Amminoacidi",
+          "sourcePath": "sbobine/biochimica/biochimica_syllabus.md",
+          "topics": [
+            {
+              "id": "biochimica_destino_metabolico_degli_amminoacidi",
+              "title": "Destino metabolico degli amminoacidi",
+              "module_id": "biochimica_metabolismo_degli_amminoacidi",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_ciclo_dell_urea",
+              "title": "Ciclo dell'urea",
+              "module_id": "biochimica_metabolismo_degli_amminoacidi",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_metabolismo_della_fenilalanina",
+              "title": "Metabolismo della fenilalanina",
+              "module_id": "biochimica_metabolismo_degli_amminoacidi",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_biosintesi_delle_catecolammine",
+              "title": "Biosintesi delle catecolammine",
+              "module_id": "biochimica_metabolismo_degli_amminoacidi",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            }
+          ]
+        },
+        {
+          "id": "biochimica_metabolismo_dei_nucleotidi",
+          "subjectId": "biochimica",
+          "title": "Metabolismo dei Nucleotidi",
+          "sourcePath": "sbobine/biochimica/biochimica_syllabus.md",
+          "topics": [
+            {
+              "id": "biochimica_biosintesi_dei_ribonucleotidi",
+              "title": "Biosintesi dei ribonucleotidi",
+              "module_id": "biochimica_metabolismo_dei_nucleotidi",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_biosintesi_dei_deossiribonucleotidi",
+              "title": "Biosintesi dei deossiribonucleotidi",
+              "module_id": "biochimica_metabolismo_dei_nucleotidi",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_integrazione_tra_metabolismo_glucidico_e_lipidico",
+              "title": "Integrazione tra metabolismo glucidico e lipidico",
+              "module_id": "biochimica_metabolismo_dei_nucleotidi",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            },
+            {
+              "id": "biochimica_meccanismi_che_regolano_l_omeostasi_del_glucosio",
+              "title": "Meccanismi che regolano l'omeostasi del glucosio",
+              "module_id": "biochimica_metabolismo_dei_nucleotidi",
+              "subject": "biochimica",
+              "source_path": "sbobine/biochimica/biochimica_syllabus.md"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
