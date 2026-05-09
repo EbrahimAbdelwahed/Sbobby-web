@@ -141,8 +141,8 @@ export function ExamStudioApp() {
     ]);
     setUser(me.user);
     setSubjects(subjectsPayload.subjects);
-    setTopics(topicsPayload.topics);
-    setTopicTree(topicsPayload.tree);
+    setTopics(topicsPayload.topics ?? []);
+    setTopicTree(topicsPayload.tree ?? []);
     setLoading(false);
     if (!me.user) {
       window.location.href = "/login";
