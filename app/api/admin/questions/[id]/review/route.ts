@@ -10,7 +10,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const user = await getAuthUser();
-  if (!user || !isAdminUser(user)) {
+  if (!user || !(await isAdminUser(user))) {
     return Response.json({ error: "Forbidden" }, { status: user ? 403 : 401 });
   }
   const { id } = await params;
@@ -19,6 +19,14 @@ export async function PATCH(
     reliabilityLevelId?: string;
     answer?: string;
     explanationShort?: string;
+    rationale?: string;
+    evidenceStatus?: "supported" | "partially_supported" | "insufficient_evidence" | "conflicting_sources";
+    confidence?: number;
+    warnings?: string[];
+    needsHumanReview?: boolean;
+    sourceChunkIds?: string[];
+    publicationStatus?: "unpublished" | "published" | "rejected" | "needs_repair" | "not_recoverable";
+    adminNote?: string | null;
   };
   const question = await updateQuestionReview(id, body, user.email);
   if (!question) {

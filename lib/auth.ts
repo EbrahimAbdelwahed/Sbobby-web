@@ -1,7 +1,7 @@
 import GoogleProvider from "next-auth/providers/google";
 import { getServerSession, type NextAuthOptions } from "next-auth";
 
-import { ensureUser } from "@/lib/exam/repository";
+import { ensureUser, userHasRole } from "@/lib/exam/repository";
 
 if (!process.env.NEXTAUTH_URL && process.env.AUTH_URL) {
   process.env.NEXTAUTH_URL = process.env.AUTH_URL;
@@ -74,7 +74,7 @@ export async function getAuthUser(): Promise<SessionUser | null> {
   return authUser;
 }
 
-export function isAdminUser(user: SessionUser | null) {
+function isBootstrapAdmin(user: SessionUser | null) {
   if (!user?.email) {
     return false;
   }
@@ -82,5 +82,15 @@ export function isAdminUser(user: SessionUser | null) {
     .split(",")
     .map((item) => item.trim().toLowerCase())
     .filter(Boolean);
-  return allowlist.length === 0 || allowlist.includes(user.email.toLowerCase());
+  return allowlist.includes(user.email.toLowerCase());
+}
+
+export async function isAdminUser(user: SessionUser | null) {
+  if (!user?.email) {
+    return false;
+  }
+  if (await userHasRole(user.email, "admin")) {
+    return true;
+  }
+  return isBootstrapAdmin(user);
 }

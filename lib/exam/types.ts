@@ -1,4 +1,7 @@
 export type Rating = "wrong" | "partial" | "correct" | "easy";
+export type PublicationStatus = "unpublished" | "published" | "rejected" | "needs_repair" | "not_recoverable";
+export type SharedStudyStatus = "open" | "active" | "completed" | "archived";
+export type ChatRole = "user" | "assistant" | "system";
 
 export interface Subject {
   id: string;
@@ -18,7 +21,35 @@ export interface Topic {
   module_id: string;
   subject: string;
   source_path: string;
+  parentTopicId: string | null;
+  level: number;
+  displayOrder: number;
+  path: string[];
+  questionCount: number;
 }
+
+export interface TopicWithModule extends Topic {
+  moduleTitle: string;
+}
+
+export interface TopicTreeNode {
+  id: string;
+  title: string;
+  subject: string;
+  source_path: string;
+  module_id: string;
+  moduleTitle: string;
+  parentTopicId: string | null;
+  level: number;
+  displayOrder: number;
+  path: string[];
+  questionCount: number;
+  children: TopicTreeNode[];
+  kind: "module" | "topic";
+}
+
+export type SeedTopic = Omit<Topic, "parentTopicId" | "level" | "displayOrder" | "path" | "questionCount"> &
+  Partial<Pick<Topic, "parentTopicId" | "level" | "displayOrder" | "path" | "questionCount">>;
 
 export interface ReliabilityLevel {
   id: string;
@@ -68,6 +99,10 @@ export interface Question {
   needsTopicReview: boolean;
   reviewStatusId: string;
   reliabilityLevelId: string;
+  publicationStatus: PublicationStatus;
+  publishedAt: string | null;
+  publishedBy: string | null;
+  adminNote: string | null;
   isActive: boolean;
 }
 
@@ -116,8 +151,10 @@ export interface StudySession {
   filters: {
     subject?: string;
     topic?: string;
+    topics?: string[];
     wrongBefore?: boolean;
-    reliability?: string;
+    limit?: number;
+    order?: "random" | "ordered";
   };
 }
 
@@ -130,11 +167,79 @@ export interface ReviewEvent {
   createdAt: string;
 }
 
+export interface UserRole {
+  userId: string;
+  role: "admin";
+  createdAt: string;
+}
+
+export interface SharedStudySession {
+  id: string;
+  code: string;
+  createdBy: string;
+  status: SharedStudyStatus;
+  filters: StudySession["filters"];
+  questionIds: string[];
+  groupReviewEnabled: boolean;
+  createdAt: string;
+  startedAt: string | null;
+  completedAt: string | null;
+}
+
+export interface SharedStudyParticipant {
+  sessionId: string;
+  userId: string;
+  displayName: string;
+  joinedAt: string;
+  leftAt: string | null;
+}
+
+export interface SharedStudyAnswer {
+  id: string;
+  sessionId: string;
+  userId: string;
+  questionId: string;
+  rating: Rating;
+  selectedOptionId: string | null;
+  isCorrect: boolean | null;
+  answeredAt: string;
+}
+
+export interface SharedStudyState {
+  session: SharedStudySession;
+  participants: SharedStudyParticipant[];
+  answers: SharedStudyAnswer[];
+  questions: QuestionView[];
+  currentUserId: string;
+}
+
+export interface SharedStudyAssignment {
+  question: QuestionView;
+  assignedExplainers: Array<{ userId: string; displayName: string }>;
+}
+
+export interface ChatThread {
+  id: string;
+  userId: string;
+  questionId: string;
+  createdAt: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  threadId: string;
+  role: ChatRole;
+  content: string;
+  citations: Array<{ chunkId: string; sourceTitle?: string; sourcePath?: string }>;
+  model: string | null;
+  createdAt: string;
+}
+
 export interface SeedData {
   generatedBy: string;
   subjects: Subject[];
   modules: Module[];
-  topics: Topic[];
+  topics: SeedTopic[];
   reliabilityLevels: ReliabilityLevel[];
   reviewStatuses: ReviewStatus[];
   sourceChunks: SourceChunk[];
@@ -146,7 +251,7 @@ export interface SeedData {
 
 export interface QuestionView extends Question {
   subjectLabel: string;
-  topics: Array<Topic & { moduleTitle: string }>;
+  topics: TopicWithModule[];
   reviewStatus: ReviewStatus;
   reliabilityLevel: ReliabilityLevel;
   explanation: QuestionExplanation | null;

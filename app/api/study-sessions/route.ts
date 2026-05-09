@@ -17,7 +17,6 @@ export async function POST(request: NextRequest) {
     {
       subject: typeof body.filters?.subject === "string" ? body.filters.subject : undefined,
       topic: typeof body.filters?.topic === "string" ? body.filters.topic : undefined,
-      reliability: typeof body.filters?.reliability === "string" ? body.filters.reliability : undefined,
       wrongBefore: Boolean(body.filters?.wrongBefore),
     },
     user.email,

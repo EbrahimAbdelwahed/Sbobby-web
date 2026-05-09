@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "verify": "npm run lint && npm run build",
+    "verify:smoke": "node scripts/verify-smoke.mjs",
+    "verify:production": "VERIFY_BASE_URL=https://sbobby-web.vercel.app npm run verify:smoke",
+    "import:windowjudge15": "node scripts/import-windowjudge15.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
