@@ -61,14 +61,19 @@ export function SharedStudyApp({ code }: { code: string }) {
 
   async function rate(rating: Rating, selectedOptionId?: string | null) {
     if (!question) return;
-    await jsonFetch(`/api/shared-sessions/${code}/answers`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ questionId: question.id, rating, selectedOptionId }),
-    });
-    setShowAnswer(false);
-    setIndex((value) => Math.min(value + 1, Math.max((state?.questions.length ?? 1) - 1, 0)));
-    await load();
+    try {
+      setMessage(null);
+      await jsonFetch(`/api/shared-sessions/${code}/answers`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ questionId: question.id, rating, selectedOptionId }),
+      });
+      setShowAnswer(false);
+      setIndex((value) => Math.min(value + 1, Math.max((state?.questions.length ?? 1) - 1, 0)));
+      await load();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Risposta non salvata");
+    }
   }
 
   return (

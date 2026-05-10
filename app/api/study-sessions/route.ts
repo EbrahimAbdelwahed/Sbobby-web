@@ -11,13 +11,23 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
   const body = (await request.json().catch(() => ({}))) as {
-    filters?: Record<string, string | boolean | undefined>;
+    filters?: {
+      subject?: string;
+      topic?: string;
+      topics?: string[];
+      wrongBefore?: boolean;
+      limit?: number;
+      order?: "random" | "ordered";
+    };
   };
   const session = createStudySession(
     {
       subject: typeof body.filters?.subject === "string" ? body.filters.subject : undefined,
       topic: typeof body.filters?.topic === "string" ? body.filters.topic : undefined,
+      topics: Array.isArray(body.filters?.topics) ? body.filters.topics.filter(Boolean) : undefined,
       wrongBefore: Boolean(body.filters?.wrongBefore),
+      limit: Number.isFinite(body.filters?.limit) ? Math.max(1, Math.min(100, Number(body.filters?.limit))) : undefined,
+      order: body.filters?.order === "ordered" ? "ordered" : "random",
     },
     user.email,
   );

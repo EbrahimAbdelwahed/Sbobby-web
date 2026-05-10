@@ -218,14 +218,41 @@ export function ExamStudioApp() {
     setSelectedTopicIds([]);
   }
 
-  async function startSession() {
-    const payload = await jsonFetch<{ session: { id: string } }>("/api/study-sessions", {
+  async function createPersonalSession() {
+    return jsonFetch<{ session: { id: string } }>("/api/study-sessions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ filters: { subject, topic: selectedTopicIds.join(","), wrongBefore } }),
+      body: JSON.stringify({
+        filters: {
+          subject,
+          topic: selectedTopicIds.join(","),
+          topics: selectedTopicIds,
+          wrongBefore,
+          limit: questionLimit,
+        },
+      }),
     });
+  }
+
+  async function startSession() {
+    const payload = await createPersonalSession();
     setSessionId(payload.session.id);
     setMessage("Sessione avviata");
+  }
+
+  async function resetSimulation() {
+    try {
+      setMessage(null);
+      const payload = await createPersonalSession();
+      setSessionId(payload.session.id);
+      setCurrentIndex(0);
+      setShowAnswer(false);
+      await loadQuestions();
+      await loadStats();
+      setMessage("Simulazione resettata. I progressi già registrati restano salvati.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Reset non riuscito");
+    }
   }
 
   async function createSharedSession() {
@@ -362,6 +389,9 @@ export function ExamStudioApp() {
 
               <button className="sb-action-primary mt-5 w-full" onClick={startSession}>
                 Avvia sessione
+              </button>
+              <button className="sb-button-secondary mt-3 w-full" onClick={resetSimulation}>
+                Reset simulazione
               </button>
               <button className="sb-button-secondary mt-3 w-full" onClick={createSharedSession}>
                 Crea sessione condivisa

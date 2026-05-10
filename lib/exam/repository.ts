@@ -1347,7 +1347,7 @@ export async function submitSharedStudyAnswer(input: {
   await createReviewEvent({
     userId: normalizedUserId,
     questionId: input.questionId,
-    sessionId: state.session.id,
+    sessionId: null,
     rating: input.rating,
   });
   const rows = (await sql.query(
