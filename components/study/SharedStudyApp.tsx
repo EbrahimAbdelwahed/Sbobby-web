@@ -62,13 +62,13 @@ export function SharedStudyApp({ code }: { code: string }) {
   }
 
   return (
-    <main className="min-h-screen bg-[var(--sb-bg)] text-[var(--sb-text)]">
-      <div className="mx-auto flex max-w-[1180px] flex-col gap-5 px-4 py-5 md:px-8">
-        <header className="flex flex-wrap items-end justify-between gap-4 border-b border-[var(--sb-border)] pb-5">
+    <main className="sb-page">
+      <div className="sb-shell max-w-[1180px]">
+        <header className="sb-header">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--sb-accent)]">Sessione condivisa</p>
-            <h1 className="mt-1 text-3xl font-semibold tracking-normal">{code}</h1>
-            <p className="mt-2 text-sm text-slate-500">{state?.participants.length ?? 0} partecipanti</p>
+            <p className="sb-kicker">Sessione condivisa</p>
+            <h1 className="sb-title">{code}</h1>
+            <p className="mt-2 text-sm text-[var(--sb-text-dim)]">{state?.participants.length ?? 0} partecipanti</p>
           </div>
           {state?.session.groupReviewEnabled ? (
             <a className="sb-button-secondary" href={`/study/shared/${code}/review`}>Review gruppo</a>
@@ -85,7 +85,7 @@ export function SharedStudyApp({ code }: { code: string }) {
             onToggle={() => setShowAnswer((value) => !value)}
             onRate={rate}
           />
-        ) : <p className="text-sm text-slate-500">Caricamento...</p>}
+        ) : <p className="text-sm text-[var(--sb-text-dim)]">Caricamento...</p>}
       </div>
     </main>
   );
@@ -109,31 +109,37 @@ function QuestionPanel({
   onRate: (rating: Rating) => void;
 }) {
   return (
-    <article className="sb-panel p-6">
+    <article className="sb-panel overflow-hidden">
+      <div className="border-b border-[var(--sb-border)] bg-[var(--sb-surface3)] px-5 py-3">
       <div className="flex flex-wrap items-center gap-2 text-xs">
         <span className="sb-badge">{question.subjectLabel}</span>
-        {answered ? <span className="sb-badge border-emerald-200 bg-emerald-50 text-emerald-700">Risposta inviata</span> : null}
-        <span className="ml-auto text-slate-500">{index + 1} / {total}</span>
+        {answered ? <span className="sb-badge border-[#b7ddcf] bg-[#e6f5ef] text-[#176b5b]">Risposta inviata</span> : null}
+        <span className="ml-auto text-sm font-semibold text-[var(--sb-text-dim)]">{index + 1} / {total}</span>
       </div>
-      <h2 className="mt-5 max-w-4xl text-2xl font-semibold leading-snug text-slate-950">{question.questionText}</h2>
+      </div>
+      <div className="p-5 md:p-7">
+      <h2 className="max-w-5xl text-2xl font-semibold leading-snug text-[var(--sb-text)] md:text-[1.7rem]">{question.questionText}</h2>
       {question.options.length ? (
-        <div className="mt-5 grid gap-2">
+        <div className="mt-6 grid gap-3">
           {question.options.map((option) => (
-            <div key={option.id} className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800">
-              <strong>{option.label}.</strong> {option.text}
+            <div key={option.id} className="sb-option text-sm">
+              <span className="sb-option-letter">{option.label}</span>
+              <span className="pt-0.5 leading-6">{option.text}</span>
             </div>
           ))}
         </div>
       ) : null}
-      <button className="sb-button-primary mt-6" onClick={onToggle}>
+      <button className="sb-action-primary mt-6" onClick={onToggle}>
         {showAnswer ? "Nascondi risposta" : "Mostra risposta"}
       </button>
       {showAnswer && question.explanation ? (
-        <div className="mt-6 border-t border-slate-200 pt-6">
-          <h3 className="font-semibold text-slate-950">Risposta</h3>
-          <p className="mt-2 text-sm text-slate-800">{question.explanation.answer}</p>
-          <h3 className="mt-5 font-semibold text-slate-950">Spiegazione</h3>
-          <p className="mt-2 text-sm text-slate-600">{question.explanation.explanationShort}</p>
+        <div className="mt-6 border-t border-[var(--sb-border)] pt-6">
+          <div className="sb-answer-box">
+            <h3 className="text-sm font-bold uppercase tracking-[0.08em] text-[var(--sb-accent)]">Risposta</h3>
+            <p className="mt-2 text-base font-semibold leading-7 text-[var(--sb-text)]">{question.explanation.answer}</p>
+            <h3 className="mt-5 text-sm font-bold uppercase tracking-[0.08em] text-[var(--sb-accent)]">Spiegazione</h3>
+            <p className="mt-2 text-sm leading-6 text-[#40524d]">{question.explanation.explanationShort}</p>
+          </div>
           <div className="mt-6 flex flex-wrap gap-2">
             {ratings.map((rating) => (
               <button key={rating.id} className="sb-button-secondary" onClick={() => onRate(rating.id)}>
@@ -143,6 +149,7 @@ function QuestionPanel({
           </div>
         </div>
       ) : null}
+      </div>
     </article>
   );
 }
@@ -158,11 +165,11 @@ export function SharedReviewApp({ code }: { code: string }) {
   }, [code]);
 
   return (
-    <main className="min-h-screen bg-[var(--sb-bg)] text-[var(--sb-text)]">
-      <div className="mx-auto flex max-w-[1180px] flex-col gap-5 px-4 py-5 md:px-8">
+    <main className="sb-page">
+      <div className="sb-shell max-w-[1180px]">
         <header className="border-b border-[var(--sb-border)] pb-5">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--sb-accent)]">Review gruppo</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-normal">{code}</h1>
+          <p className="sb-kicker">Review gruppo</p>
+          <h1 className="sb-title">{code}</h1>
         </header>
         {message ? <p className="text-sm text-rose-600">{message}</p> : null}
         <div className="grid gap-4">
@@ -171,12 +178,14 @@ export function SharedReviewApp({ code }: { code: string }) {
               <div className="flex flex-wrap gap-2 text-xs">
                 <span className="sb-badge">{assignment.question.subjectLabel}</span>
                 {assignment.assignedExplainers.length ? (
-                  assignment.assignedExplainers.map((user) => <span key={user.userId} className="sb-badge border-emerald-200 bg-emerald-50 text-emerald-700">{user.displayName}</span>)
+                  assignment.assignedExplainers.map((user) => <span key={user.userId} className="sb-badge border-[#b7ddcf] bg-[#e6f5ef] text-[#176b5b]">{user.displayName}</span>)
                 ) : <span className="sb-badge">Nessun assegnatario</span>}
               </div>
-              <h2 className="mt-4 text-lg font-semibold text-slate-950">{assignment.question.questionText}</h2>
-              <p className="mt-3 text-sm text-slate-800">{assignment.question.explanation?.answer}</p>
-              <p className="mt-2 text-sm text-slate-600">{assignment.question.explanation?.explanationShort}</p>
+              <h2 className="mt-4 text-lg font-semibold leading-7 text-[var(--sb-text)]">{assignment.question.questionText}</h2>
+              <div className="sb-answer-box mt-3">
+                <p className="text-sm font-semibold text-[var(--sb-text)]">{assignment.question.explanation?.answer}</p>
+                <p className="mt-2 text-sm leading-6 text-[#40524d]">{assignment.question.explanation?.explanationShort}</p>
+              </div>
             </article>
           ))}
         </div>

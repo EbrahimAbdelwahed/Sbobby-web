@@ -60,17 +60,17 @@ const evidenceOptions: Array<{ id: QuestionExplanation["evidenceStatus"]; label:
 ];
 
 function tokenClass(token: string) {
-  if (token === "success") return "border-emerald-200 bg-emerald-50 text-emerald-700";
-  if (token === "warning") return "border-amber-200 bg-amber-50 text-amber-700";
-  if (token === "info") return "border-sky-200 bg-sky-50 text-sky-700";
-  return "border-slate-200 bg-slate-50 text-slate-600";
+  if (token === "success") return "border-[#b7ddcf] bg-[#e6f5ef] text-[#176b5b]";
+  if (token === "warning") return "border-[#efd6a8] bg-[#fff3e3] text-[#8a5812]";
+  if (token === "info") return "border-[#b7d7e5] bg-[#e8f4f8] text-[#256b8f]";
+  return "border-[var(--sb-border)] bg-[var(--sb-surface3)] text-[var(--sb-text-dim)]";
 }
 
 function evidenceClass(status?: string) {
-  if (status === "supported") return "border-emerald-200 bg-emerald-50 text-emerald-700";
-  if (status === "partially_supported") return "border-sky-200 bg-sky-50 text-sky-700";
-  if (status === "conflicting_sources") return "border-rose-200 bg-rose-50 text-rose-700";
-  return "border-amber-200 bg-amber-50 text-amber-700";
+  if (status === "supported") return "border-[#b7ddcf] bg-[#e6f5ef] text-[#176b5b]";
+  if (status === "partially_supported") return "border-[#b7d7e5] bg-[#e8f4f8] text-[#256b8f]";
+  if (status === "conflicting_sources") return "border-[#efc0bb] bg-[#fff0ee] text-[#a73732]";
+  return "border-[#efd6a8] bg-[#fff3e3] text-[#8a5812]";
 }
 
 async function jsonFetch<T>(url: string, init?: RequestInit): Promise<T> {
@@ -248,19 +248,20 @@ export function ExamStudioApp() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[var(--sb-bg)] px-5 py-6 text-sm text-slate-500">
+      <main className="sb-page px-5 py-6 text-sm text-[var(--sb-text-dim)]">
         Caricamento...
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[var(--sb-bg)] text-[var(--sb-text)]">
-      <div className="mx-auto flex max-w-[1480px] flex-col gap-6 px-4 py-5 md:px-8">
-        <header className="flex flex-col gap-4 border-b border-[var(--sb-border)] pb-5 md:flex-row md:items-center md:justify-between">
+    <main className="sb-page">
+      <div className="sb-shell">
+        <header className="sb-header">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--sb-accent)]">Sbobby</p>
-            <h1 className="mt-1 text-3xl font-semibold tracking-normal">Exam flashcards</h1>
+            <p className="sb-kicker">Sbobby</p>
+            <h1 className="sb-title">Studio</h1>
+            <p className="mt-1 text-sm text-[var(--sb-text-dim)]">Card pubblicate, ripasso personale e sessioni condivise.</p>
           </div>
           <div className="flex flex-wrap items-center gap-3 text-sm text-[var(--sb-text-dim)]">
             <span>{user?.email ?? "Sessione locale"}</span>
@@ -269,13 +270,12 @@ export function ExamStudioApp() {
         </header>
 
         <section className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="inline-flex w-fit rounded-lg border border-[var(--sb-border)] bg-white p-1 shadow-sm">
+          <div className="sb-segmented">
             {(["study", "stats"] as const).map((item) => (
               <button
                 key={item}
-                className={`rounded-md px-4 py-2 text-sm font-medium transition ${
-                  tab === item ? "bg-slate-950 text-white shadow-sm" : "text-slate-500 hover:text-slate-950"
-                }`}
+                className="sb-segment"
+                data-active={tab === item}
                 onClick={() => setTab(item)}
               >
                 {item === "study" ? "Studio" : "Statistiche"}
@@ -286,12 +286,12 @@ export function ExamStudioApp() {
         </section>
 
         {tab === "study" ? (
-          <section className="grid gap-5 xl:grid-cols-[380px_1fr]">
-            <aside className="sb-panel h-fit p-4">
+          <section className="grid gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
+            <aside className="sb-panel h-fit p-4 xl:sticky xl:top-5">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-base font-semibold">Filtri</h2>
-                  <p className="text-sm text-slate-500">{questions.length} card disponibili</p>
+                  <h2 className="text-base font-semibold text-[var(--sb-text)]">Filtri</h2>
+                  <p className="text-sm text-[var(--sb-text-dim)]">{questions.length} card disponibili</p>
                 </div>
                 <button className="sb-button-secondary" onClick={() => { setSelectedTopicIds([]); setWrongBefore(false); }}>
                   Reset
@@ -317,23 +317,19 @@ export function ExamStudioApp() {
               {selectedTopicLabels.length ? (
                 <div className="mt-3 flex flex-wrap gap-2">
                   {selectedTopicLabels.slice(0, 8).map((item) => (
-                    <button
-                      key={item.id}
-                      className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-600"
-                      onClick={() => setSelectedTopicIds((ids) => ids.filter((id) => id !== item.id))}
-                    >
+                    <button key={item.id} className="sb-chip" onClick={() => setSelectedTopicIds((ids) => ids.filter((id) => id !== item.id))}>
                       {item.title}
                     </button>
                   ))}
                   {selectedTopicLabels.length > 8 ? (
-                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-500">
+                    <span className="sb-chip">
                       +{selectedTopicLabels.length - 8}
                     </span>
                   ) : null}
                 </div>
               ) : null}
 
-              <label className="mt-4 flex items-center gap-2 text-sm text-slate-700">
+              <label className="mt-4 flex items-center gap-2 text-sm font-medium text-[var(--sb-text)]">
                 <input checked={wrongBefore} onChange={(event) => setWrongBefore(event.target.checked)} type="checkbox" />
                 Sbagliate in precedenza
               </label>
@@ -348,7 +344,7 @@ export function ExamStudioApp() {
                 onChange={(event) => setQuestionLimit(Math.max(1, Math.min(100, Number(event.target.value) || 20)))}
               />
 
-              <button className="sb-button-primary mt-5 w-full" onClick={startSession}>
+              <button className="sb-action-primary mt-5 w-full" onClick={startSession}>
                 Avvia sessione
               </button>
               <button className="sb-button-secondary mt-3 w-full" onClick={createSharedSession}>
@@ -366,7 +362,7 @@ export function ExamStudioApp() {
               </div>
             </aside>
 
-            <section className="min-h-[540px]">
+            <section className="min-h-[540px] min-w-0">
               {questions.length === 0 ? (
                 <EmptyState title="Nessuna card pubblicabile" text="Approva alcune card nella vista Review oppure allarga i filtri." />
               ) : currentQuestion ? (
@@ -416,10 +412,10 @@ function TopicPicker({
         value={search}
         onChange={(event) => onSearch(event.target.value)}
       />
-      <div className="mt-2 max-h-[360px] overflow-auto rounded-lg border border-slate-200 bg-white p-2">
+      <div className="mt-2 max-h-[360px] overflow-auto rounded-lg border border-[var(--sb-border)] bg-[var(--sb-surface3)] p-2">
         {tree.length ? tree.map((node) => (
           <TopicNode key={node.id} node={node} selectedSet={selectedSet} onToggle={onToggle} />
-        )) : <p className="px-2 py-3 text-sm text-slate-500">Nessun argomento trovato.</p>}
+        )) : <p className="px-2 py-3 text-sm text-[var(--sb-text-dim)]">Nessun argomento trovato.</p>}
       </div>
     </div>
   );
@@ -441,7 +437,7 @@ function TopicNode({
 
   return (
     <details className="group" open={node.kind === "module"}>
-      <summary className="flex cursor-pointer list-none items-center gap-2 rounded-md px-2 py-2 text-sm hover:bg-slate-50">
+      <summary className="flex cursor-pointer list-none items-center gap-2 rounded-md px-2 py-2 text-sm hover:bg-white">
         <input
           type="checkbox"
           checked={checked}
@@ -449,15 +445,15 @@ function TopicNode({
           onChange={() => onToggle(node)}
           onClick={(event) => event.stopPropagation()}
         />
-        <span className={node.kind === "module" ? "font-semibold text-slate-900" : "text-slate-700"}>
+        <span className={node.kind === "module" ? "font-semibold text-[var(--sb-text)]" : "text-[#40524d]"}>
           {node.title}
         </span>
-        <span className="ml-auto rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">
+        <span className="ml-auto rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-[var(--sb-text-dim)]">
           {node.questionCount}
         </span>
       </summary>
       {node.children.length ? (
-        <div className="ml-5 border-l border-slate-100 pl-2">
+        <div className="ml-5 border-l border-[var(--sb-border)] pl-2">
           {node.children.map((child) => (
             <TopicNode key={child.id} node={child} selectedSet={selectedSet} onToggle={onToggle} />
           ))}
@@ -483,38 +479,44 @@ function StudyCard({
   onRate: (rating: Rating) => void;
 }) {
   return (
-    <article className="sb-panel p-6">
-      <div className="flex flex-wrap items-center gap-2 text-xs">
+    <article className="sb-panel overflow-hidden">
+      <div className="border-b border-[var(--sb-border)] bg-[var(--sb-surface3)] px-5 py-3">
+        <div className="flex flex-wrap items-center gap-2 text-xs">
         <span className="sb-badge">{question.subjectLabel}</span>
         {question.explanation ? (
           <span className={`sb-badge ${evidenceClass(question.explanation.evidenceStatus)}`}>{question.explanation.evidenceStatus}</span>
         ) : null}
-        <span className="ml-auto text-slate-500">{index + 1} / {total}</span>
+          <span className="ml-auto text-sm font-semibold text-[var(--sb-text-dim)]">{index + 1} / {total}</span>
+        </div>
       </div>
-      <h2 className="mt-5 max-w-4xl text-2xl font-semibold leading-snug text-slate-950">{question.questionText}</h2>
+      <div className="p-5 md:p-7">
+      <h2 className="max-w-5xl text-2xl font-semibold leading-snug text-[var(--sb-text)] md:text-[1.7rem]">{question.questionText}</h2>
       {question.options.length ? (
-        <div className="mt-5 grid gap-2">
+        <div className="mt-6 grid gap-3">
           {question.options.map((option) => (
-            <div key={option.id} className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-800">
-              <strong>{option.label}.</strong> {option.text}
+            <div key={option.id} className="sb-option text-sm">
+              <span className="sb-option-letter">{option.label}</span>
+              <span className="pt-0.5 leading-6">{option.text}</span>
             </div>
           ))}
         </div>
       ) : null}
-      <button className="sb-button-primary mt-6" onClick={onToggleAnswer}>
+      <button className="sb-action-primary mt-6" onClick={onToggleAnswer}>
         {showAnswer ? "Nascondi risposta" : "Mostra risposta"}
       </button>
       {showAnswer && question.explanation ? (
-        <div className="mt-6 border-t border-slate-200 pt-6">
-          <h3 className="font-semibold text-slate-950">Risposta</h3>
-          <p className="mt-2 text-sm text-slate-800">{question.explanation.answer}</p>
-          <h3 className="mt-5 font-semibold text-slate-950">Spiegazione</h3>
-          <p className="mt-2 text-sm text-slate-600">{question.explanation.explanationShort}</p>
+        <div className="mt-6 border-t border-[var(--sb-border)] pt-6">
+          <div className="sb-answer-box">
+            <h3 className="text-sm font-bold uppercase tracking-[0.08em] text-[var(--sb-accent)]">Risposta</h3>
+            <p className="mt-2 text-base font-semibold leading-7 text-[var(--sb-text)]">{question.explanation.answer}</p>
+            <h3 className="mt-5 text-sm font-bold uppercase tracking-[0.08em] text-[var(--sb-accent)]">Spiegazione</h3>
+            <p className="mt-2 text-sm leading-6 text-[#40524d]">{question.explanation.explanationShort}</p>
+          </div>
           <div className="mt-5 grid gap-3 xl:grid-cols-2">
             {question.sourceChunks.slice(0, 4).map((chunk) => (
-              <details key={chunk.id} className="rounded-lg border border-slate-200 bg-white p-3 text-sm">
-                <summary className="cursor-pointer font-medium text-slate-900">{chunk.sourceTitle}</summary>
-                <p className="mt-2 text-slate-600">{chunk.textClean.slice(0, 700)}</p>
+              <details key={chunk.id} className="sb-source-box">
+                <summary className="cursor-pointer font-semibold text-[var(--sb-text)]">{chunk.sourceTitle}</summary>
+                <p className="mt-2 leading-6 text-[var(--sb-text-dim)]">{chunk.textClean.slice(0, 700)}</p>
               </details>
             ))}
           </div>
@@ -528,6 +530,7 @@ function StudyCard({
           <QuestionChat questionId={question.id} />
         </div>
       ) : null}
+      </div>
     </article>
   );
 }
@@ -562,14 +565,14 @@ function QuestionChat({ questionId }: { questionId: string }) {
   }
 
   return (
-    <section className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
-      <h3 className="text-sm font-semibold text-slate-950">Chat sul concetto</h3>
+    <section className="mt-6 rounded-lg border border-[var(--sb-border)] bg-[var(--sb-surface3)] p-4">
+      <h3 className="text-sm font-bold text-[var(--sb-text)]">Chat sul concetto</h3>
       <div className="mt-3 grid max-h-64 gap-2 overflow-auto">
         {messages.length ? messages.map((message) => (
-          <div key={message.id} className={`rounded-lg border p-3 text-sm ${message.role === "assistant" ? "border-slate-200 bg-white text-slate-700" : "border-indigo-100 bg-indigo-50 text-slate-900"}`}>
+          <div key={message.id} className={`rounded-lg border p-3 text-sm leading-6 ${message.role === "assistant" ? "border-[var(--sb-border)] bg-white text-[#40524d]" : "border-[#b7ddcf] bg-[#e6f5ef] text-[var(--sb-text)]"}`}>
             {message.content}
           </div>
-        )) : <p className="text-sm text-slate-500">Fai una domanda dopo aver letto risposta e fonti.</p>}
+        )) : <p className="text-sm text-[var(--sb-text-dim)]">Fai una domanda dopo aver letto risposta e fonti.</p>}
       </div>
       <div className="mt-3 flex gap-2">
         <input
@@ -600,49 +603,52 @@ function ReviewCard({
   onSave: (patch: Partial<ReviewDraft> & { reviewStatusId?: string; reliabilityLevelId?: string; needsHumanReview?: boolean; publicationStatus?: string }) => void;
 }) {
   return (
-    <article className="sb-panel p-4">
-      <div className="flex flex-wrap gap-2 text-xs">
+    <article className="sb-panel overflow-hidden">
+      <div className="border-b border-[var(--sb-border)] bg-[var(--sb-surface3)] px-4 py-3">
+        <div className="flex flex-wrap gap-2 text-xs">
         <span className="sb-badge">{question.subjectLabel}</span>
         <span className="sb-badge">{question.reviewStatus.label}</span>
         <span className={`sb-badge ${tokenClass(question.reliabilityLevel.colorToken)}`}>{question.reliabilityLevel.label}</span>
         {question.explanation ? <span className={`sb-badge ${evidenceClass(question.explanation.evidenceStatus)}`}>{question.explanation.evidenceStatus}</span> : null}
+        </div>
       </div>
-      <h3 className="mt-3 text-lg font-semibold text-slate-950">{question.questionText}</h3>
+      <div className="p-4">
+      <h3 className="text-lg font-semibold leading-7 text-[var(--sb-text)]">{question.questionText}</h3>
       <div className="mt-4 grid gap-3 lg:grid-cols-2">
-        <label className="grid gap-1 text-sm font-medium text-slate-700">
+        <label className="grid gap-1 text-sm font-semibold text-[#40524d]">
           Risposta
           <textarea className="sb-textarea" value={draft.answer} onChange={(event) => onDraft({ answer: event.target.value })} />
         </label>
-        <label className="grid gap-1 text-sm font-medium text-slate-700">
+        <label className="grid gap-1 text-sm font-semibold text-[#40524d]">
           Spiegazione
           <textarea className="sb-textarea" value={draft.explanationShort} onChange={(event) => onDraft({ explanationShort: event.target.value })} />
         </label>
       </div>
-      <label className="mt-3 grid gap-1 text-sm font-medium text-slate-700">
+      <label className="mt-3 grid gap-1 text-sm font-semibold text-[#40524d]">
         Rationale interno
         <textarea className="sb-textarea min-h-20" value={draft.rationale} onChange={(event) => onDraft({ rationale: event.target.value })} />
       </label>
       <div className="mt-3 grid gap-3 md:grid-cols-3">
-        <label className="grid gap-1 text-sm font-medium text-slate-700">
+        <label className="grid gap-1 text-sm font-semibold text-[#40524d]">
           Evidenza
           <select className="sb-input" value={draft.evidenceStatus} onChange={(event) => onDraft({ evidenceStatus: event.target.value as QuestionExplanation["evidenceStatus"] })}>
             {evidenceOptions.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
           </select>
         </label>
-        <label className="grid gap-1 text-sm font-medium text-slate-700">
+        <label className="grid gap-1 text-sm font-semibold text-[#40524d]">
           Confidence
           <input className="sb-input" value={draft.confidence} onChange={(event) => onDraft({ confidence: event.target.value })} inputMode="decimal" />
         </label>
-        <label className="grid gap-1 text-sm font-medium text-slate-700">
+        <label className="grid gap-1 text-sm font-semibold text-[#40524d]">
           Warning
           <input className="sb-input" value={draft.warnings} onChange={(event) => onDraft({ warnings: event.target.value })} />
         </label>
       </div>
       <div className="mt-4 grid gap-3 md:grid-cols-2">
         {question.sourceChunks.slice(0, 4).map((chunk) => (
-          <details key={chunk.id} className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-600">
-            <summary className="cursor-pointer font-medium text-slate-900">{chunk.sourceTitle}</summary>
-            <p className="mt-2">{chunk.textClean.slice(0, 520)}</p>
+          <details key={chunk.id} className="sb-source-box text-[var(--sb-text-dim)]">
+            <summary className="cursor-pointer font-semibold text-[var(--sb-text)]">{chunk.sourceTitle}</summary>
+            <p className="mt-2 leading-6">{chunk.textClean.slice(0, 520)}</p>
           </details>
         ))}
       </div>
@@ -651,10 +657,11 @@ function ReviewCard({
         <button className="sb-button-secondary" onClick={() => onSave({ reviewStatusId: "reviewing", reliabilityLevelId: "source_supported", evidenceStatus: "partially_supported", needsHumanReview: true, publicationStatus: "needs_repair" })}>Needs evidence</button>
         <button className="sb-button-secondary" onClick={() => onSave({ reviewStatusId: "rejected", reliabilityLevelId: "needs_review", needsHumanReview: false, publicationStatus: "rejected" })}>Rifiuta</button>
         <button className="sb-button-secondary" onClick={() => onSave({ publicationStatus: "unpublished", needsHumanReview: true })}>Unpublish</button>
-        <button className="sb-button-primary" onClick={() => onSave({ reviewStatusId: "approved", reliabilityLevelId: "human_verified", evidenceStatus: "supported", confidence: "1", warnings: "", needsHumanReview: false, publicationStatus: "published" })}>Pubblica</button>
+        <button className="sb-action-primary" onClick={() => onSave({ reviewStatusId: "approved", reliabilityLevelId: "human_verified", evidenceStatus: "supported", confidence: "1", warnings: "", needsHumanReview: false, publicationStatus: "published" })}>Pubblica</button>
         <select className="sb-input max-w-56" value={question.reliabilityLevelId} onChange={(event) => onSave({ reliabilityLevelId: event.target.value })}>
           {reliabilityLevels.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
         </select>
+      </div>
       </div>
     </article>
   );
@@ -740,17 +747,17 @@ export function AdminReviewApp() {
   }
 
   return (
-    <main className="min-h-screen bg-[var(--sb-bg)] text-[var(--sb-text)]">
-      <div className="mx-auto flex max-w-[1480px] flex-col gap-6 px-4 py-5 md:px-8">
-        <header className="flex flex-wrap items-end justify-between gap-4 border-b border-[var(--sb-border)] pb-5">
+    <main className="sb-page">
+      <div className="sb-shell">
+        <header className="sb-header">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--sb-accent)]">Sbobby admin</p>
-            <h1 className="mt-1 text-3xl font-semibold tracking-normal">Review card</h1>
-            <p className="mt-2 text-sm text-slate-500">Stati: {reviewStatuses.map((item) => item.label).join(", ")}</p>
+            <p className="sb-kicker">Sbobby admin</p>
+            <h1 className="sb-title">Review card</h1>
+            <p className="mt-2 text-sm text-[var(--sb-text-dim)]">Stati: {reviewStatuses.map((item) => item.label).join(", ")}</p>
           </div>
           {message ? <p className="text-sm font-medium text-emerald-600">{message}</p> : null}
         </header>
-        {loading ? <p className="text-sm text-slate-500">Caricamento...</p> : (
+        {loading ? <p className="text-sm text-[var(--sb-text-dim)]">Caricamento...</p> : (
           <div className="grid gap-4">
             {questions.map((question) => (
               <ReviewCard
@@ -772,14 +779,14 @@ export function AdminReviewApp() {
 function StatsList({ title, rows }: { title: string; rows: Array<{ id: string; title: string; meta: string }> }) {
   return (
     <section className="sb-panel p-4">
-      <h2 className="text-xl font-semibold text-slate-950">{title}</h2>
+      <h2 className="text-xl font-semibold text-[var(--sb-text)]">{title}</h2>
       <div className="mt-4 grid gap-2">
         {rows.length ? rows.map((row) => (
-          <div key={row.id} className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-            <p className="line-clamp-2 text-sm font-medium text-slate-900">{row.title}</p>
-            <p className="mt-1 text-xs text-slate-500">{row.meta}</p>
+          <div key={row.id} className="rounded-lg border border-[var(--sb-border)] bg-[var(--sb-surface3)] p-3">
+            <p className="line-clamp-2 text-sm font-semibold text-[var(--sb-text)]">{row.title}</p>
+            <p className="mt-1 text-xs text-[var(--sb-text-dim)]">{row.meta}</p>
           </div>
-        )) : <p className="text-sm text-slate-500">Nessun evento registrato.</p>}
+        )) : <p className="text-sm text-[var(--sb-text-dim)]">Nessun evento registrato.</p>}
       </div>
     </section>
   );
@@ -788,8 +795,8 @@ function StatsList({ title, rows }: { title: string; rows: Array<{ id: string; t
 function EmptyState({ title, text }: { title: string; text: string }) {
   return (
     <div className="sb-panel p-8">
-      <h2 className="text-xl font-semibold text-slate-950">{title}</h2>
-      <p className="mt-2 text-sm text-slate-500">{text}</p>
+      <h2 className="text-xl font-semibold text-[var(--sb-text)]">{title}</h2>
+      <p className="mt-2 text-sm text-[var(--sb-text-dim)]">{text}</p>
     </div>
   );
 }
