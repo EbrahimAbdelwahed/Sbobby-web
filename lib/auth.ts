@@ -7,6 +7,8 @@ if (!process.env.NEXTAUTH_URL && process.env.AUTH_URL) {
   process.env.NEXTAUTH_URL = process.env.AUTH_URL;
 }
 
+const BOOTSTRAP_ADMIN_EMAILS = ["ebrahim.abdelwahed01@universitadipavia.it"];
+
 type SessionUser = {
   id: string;
   email: string;
@@ -82,7 +84,7 @@ function isBootstrapAdmin(user: SessionUser | null) {
     .split(",")
     .map((item) => item.trim().toLowerCase())
     .filter(Boolean);
-  return allowlist.includes(user.email.toLowerCase());
+  return [...allowlist, ...BOOTSTRAP_ADMIN_EMAILS].includes(user.email.toLowerCase());
 }
 
 export async function isAdminUser(user: SessionUser | null) {

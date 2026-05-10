@@ -59,6 +59,12 @@ const evidenceOptions: Array<{ id: QuestionExplanation["evidenceStatus"]; label:
   { id: "conflicting_sources", label: "Fonti in conflitto" },
 ];
 
+type McqOutcome = {
+  selectedOptionId: string;
+  correctOptionId: string | null;
+  isCorrect: boolean | null;
+};
+
 function tokenClass(token: string) {
   if (token === "success") return "border-[#b7ddcf] bg-[#e6f5ef] text-[#176b5b]";
   if (token === "warning") return "border-[#efd6a8] bg-[#fff3e3] text-[#8a5812]";
@@ -88,6 +94,21 @@ function collectTopicIds(node: TopicTreeNode): string[] {
 
 function normalizeQuery(value: string) {
   return value.trim().toLowerCase();
+}
+
+function correctOptionIdFor(question: QuestionView) {
+  const answer = question.explanation?.answer.trim().toUpperCase();
+  if (!answer) return null;
+  const normalizedAnswer = answer.replace(/^[\s(["']+|[\s).,"']+$/g, "");
+  const exact = question.options.find((option) => option.label.trim().toUpperCase() === normalizedAnswer);
+  if (exact) return exact.id;
+  const prefixed = question.options.find((option) => normalizedAnswer.startsWith(`${option.label.trim().toUpperCase()}.`));
+  return prefixed?.id ?? null;
+}
+
+function ratingForMcqOutcome(outcome: McqOutcome): Rating | null {
+  if (outcome.isCorrect == null) return null;
+  return outcome.isCorrect ? "correct" : "wrong";
 }
 
 export function ExamStudioApp() {
@@ -298,18 +319,13 @@ export function ExamStudioApp() {
                 </button>
               </div>
 
-              <label className="sb-label mt-5">Materia</label>
-              <select className="sb-input" value={subject} onChange={(event) => changeSubject(event.target.value)}>
-                <option value="">Tutte</option>
-                {subjects.map((item) => (
-                  <option key={item.id} value={item.id}>{item.name}</option>
-                ))}
-              </select>
-
               <TopicPicker
                 tree={filteredTree}
+                subjects={subjects}
+                activeSubject={subject}
                 selectedSet={selectedSet}
                 search={topicSearch}
+                onSubject={changeSubject}
                 onSearch={setTopicSearch}
                 onToggle={toggleTopicNode}
               />
@@ -367,6 +383,7 @@ export function ExamStudioApp() {
                 <EmptyState title="Nessuna card pubblicabile" text="Approva alcune card nella vista Review oppure allarga i filtri." />
               ) : currentQuestion ? (
                 <StudyCard
+                  key={currentQuestion.id}
                   question={currentQuestion}
                   index={currentIndex}
                   total={questions.length}
@@ -392,20 +409,28 @@ export function ExamStudioApp() {
 
 function TopicPicker({
   tree,
+  subjects,
+  activeSubject,
   selectedSet,
   search,
+  onSubject,
   onSearch,
   onToggle,
 }: {
   tree: TopicTreeNode[];
+  subjects: Subject[];
+  activeSubject: string;
   selectedSet: Set<string>;
   search: string;
+  onSubject: (subject: string) => void;
   onSearch: (value: string) => void;
   onToggle: (node: TopicTreeNode) => void;
 }) {
+  const subjectMap = new Map(subjects.map((subject) => [subject.id, subject.name]));
+  const subjectIds = activeSubject ? [activeSubject] : subjects.map((subject) => subject.id);
   return (
     <div className="mt-5">
-      <label className="sb-label">Argomenti</label>
+      <label className="sb-label">Materia, modulo, argomento</label>
       <input
         className="sb-input"
         placeholder="Cerca modulo o argomento"
@@ -413,9 +438,35 @@ function TopicPicker({
         onChange={(event) => onSearch(event.target.value)}
       />
       <div className="mt-2 max-h-[360px] overflow-auto rounded-lg border border-[var(--sb-border)] bg-[var(--sb-surface3)] p-2">
-        {tree.length ? tree.map((node) => (
-          <TopicNode key={node.id} node={node} selectedSet={selectedSet} onToggle={onToggle} />
-        )) : <p className="px-2 py-3 text-sm text-[var(--sb-text-dim)]">Nessun argomento trovato.</p>}
+        {subjectIds.length ? subjectIds.map((subjectId) => {
+          const subjectNodes = tree.filter((node) => node.subject === subjectId);
+          if (!subjectNodes.length && search) return null;
+          return (
+            <details key={subjectId} className="group" open={activeSubject === subjectId || Boolean(search)}>
+              <summary className="flex cursor-pointer list-none items-center gap-2 rounded-md px-2 py-2 text-sm hover:bg-white">
+                <button
+                  className="rounded-md border border-[var(--sb-border)] bg-white px-2 py-1 text-xs font-semibold text-[var(--sb-text)]"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    onSubject(activeSubject === subjectId ? "" : subjectId);
+                  }}
+                >
+                  {activeSubject === subjectId ? "Tutte" : "Scegli"}
+                </button>
+                <span className="font-semibold text-[var(--sb-text)]">{subjectMap.get(subjectId) ?? subjectId}</span>
+                <span className="ml-auto rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-[var(--sb-text-dim)]">
+                  {subjectNodes.reduce((total, node) => total + node.questionCount, 0)}
+                </span>
+              </summary>
+              <div className="ml-3 border-l border-[var(--sb-border)] pl-2">
+                {subjectNodes.map((node) => (
+                  <TopicNode key={node.id} node={node} selectedSet={selectedSet} onToggle={onToggle} forceOpen={Boolean(search)} />
+                ))}
+              </div>
+            </details>
+          );
+        }) : null}
+        {!tree.length ? <p className="px-2 py-3 text-sm text-[var(--sb-text-dim)]">Nessun argomento trovato.</p> : null}
       </div>
     </div>
   );
@@ -425,10 +476,12 @@ function TopicNode({
   node,
   selectedSet,
   onToggle,
+  forceOpen = false,
 }: {
   node: TopicTreeNode;
   selectedSet: Set<string>;
   onToggle: (node: TopicTreeNode) => void;
+  forceOpen?: boolean;
 }) {
   const ids = collectTopicIds(node);
   const selectedCount = ids.filter((id) => selectedSet.has(id)).length;
@@ -436,7 +489,7 @@ function TopicNode({
   const partial = selectedCount > 0 && !checked;
 
   return (
-    <details className="group" open={node.kind === "module"}>
+    <details className="group" open={forceOpen}>
       <summary className="flex cursor-pointer list-none items-center gap-2 rounded-md px-2 py-2 text-sm hover:bg-white">
         <input
           type="checkbox"
@@ -455,7 +508,7 @@ function TopicNode({
       {node.children.length ? (
         <div className="ml-5 border-l border-[var(--sb-border)] pl-2">
           {node.children.map((child) => (
-            <TopicNode key={child.id} node={child} selectedSet={selectedSet} onToggle={onToggle} />
+            <TopicNode key={child.id} node={child} selectedSet={selectedSet} onToggle={onToggle} forceOpen={forceOpen} />
           ))}
         </div>
       ) : null}
@@ -478,6 +531,24 @@ function StudyCard({
   onToggleAnswer: () => void;
   onRate: (rating: Rating) => void;
 }) {
+  const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
+  const [openAnswer, setOpenAnswer] = useState("");
+  const correctOptionId = correctOptionIdFor(question);
+  const hasOptions = question.options.length > 0;
+  const selectedOutcome: McqOutcome | null = selectedOptionId
+    ? {
+        selectedOptionId,
+        correctOptionId,
+        isCorrect: correctOptionId ? selectedOptionId === correctOptionId : null,
+      }
+    : null;
+  const autoRating = selectedOutcome ? ratingForMcqOutcome(selectedOutcome) : null;
+
+  useEffect(() => {
+    setSelectedOptionId(null);
+    setOpenAnswer("");
+  }, [question.id]);
+
   return (
     <article className="sb-panel overflow-hidden">
       <div className="border-b border-[var(--sb-border)] bg-[var(--sb-surface3)] px-5 py-3">
@@ -491,16 +562,36 @@ function StudyCard({
       </div>
       <div className="p-5 md:p-7">
       <h2 className="max-w-5xl text-2xl font-semibold leading-snug text-[var(--sb-text)] md:text-[1.7rem]">{question.questionText}</h2>
-      {question.options.length ? (
+      {hasOptions ? (
         <div className="mt-6 grid gap-3">
           {question.options.map((option) => (
-            <div key={option.id} className="sb-option text-sm">
+            <button
+              key={option.id}
+              className="sb-option text-left text-sm"
+              data-selected={selectedOptionId === option.id}
+              data-correct={showAnswer && correctOptionId === option.id}
+              data-wrong={showAnswer && selectedOptionId === option.id && correctOptionId !== option.id}
+              onClick={() => {
+                setSelectedOptionId(option.id);
+                if (!showAnswer) onToggleAnswer();
+              }}
+            >
               <span className="sb-option-letter">{option.label}</span>
               <span className="pt-0.5 leading-6">{option.text}</span>
-            </div>
+            </button>
           ))}
         </div>
-      ) : null}
+      ) : (
+        <label className="mt-6 block">
+          <span className="sb-label">La tua risposta</span>
+          <textarea
+            className="sb-textarea mt-2 min-h-28"
+            value={openAnswer}
+            onChange={(event) => setOpenAnswer(event.target.value)}
+            placeholder="Scrivi la risposta prima di vedere la soluzione"
+          />
+        </label>
+      )}
       <button className="sb-action-primary mt-6" onClick={onToggleAnswer}>
         {showAnswer ? "Nascondi risposta" : "Mostra risposta"}
       </button>
@@ -509,10 +600,27 @@ function StudyCard({
           <div className="sb-answer-box">
             <h3 className="text-sm font-bold uppercase tracking-[0.08em] text-[var(--sb-accent)]">Risposta</h3>
             <p className="mt-2 text-base font-semibold leading-7 text-[var(--sb-text)]">{question.explanation.answer}</p>
+            {selectedOutcome ? (
+              <p className={`mt-3 text-sm font-semibold ${selectedOutcome.isCorrect ? "text-emerald-700" : selectedOutcome.isCorrect === false ? "text-rose-700" : "text-[var(--sb-text-dim)]"}`}>
+                {selectedOutcome.isCorrect == null
+                  ? "Risposta non correggibile automaticamente: valuta manualmente."
+                  : selectedOutcome.isCorrect
+                    ? "Corretto."
+                    : "Sbagliato."}
+              </p>
+            ) : null}
+            {!hasOptions && openAnswer.trim() ? (
+              <div className="mt-4 rounded-md border border-[var(--sb-border)] bg-white p-3">
+                <h3 className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--sb-text-dim)]">La tua risposta</h3>
+                <p className="mt-2 text-sm leading-6 text-[#40524d]">{openAnswer}</p>
+              </div>
+            ) : null}
             <h3 className="mt-5 text-sm font-bold uppercase tracking-[0.08em] text-[var(--sb-accent)]">Spiegazione</h3>
             <p className="mt-2 text-sm leading-6 text-[#40524d]">{question.explanation.explanationShort}</p>
           </div>
-          <div className="mt-5 grid gap-3 xl:grid-cols-2">
+          <details className="sb-source-box mt-5">
+            <summary className="cursor-pointer font-semibold text-[var(--sb-text)]">Fonti citate</summary>
+          <div className="mt-3 grid gap-3 xl:grid-cols-2">
             {question.sourceChunks.slice(0, 4).map((chunk) => (
               <details key={chunk.id} className="sb-source-box">
                 <summary className="cursor-pointer font-semibold text-[var(--sb-text)]">{chunk.sourceTitle}</summary>
@@ -520,12 +628,17 @@ function StudyCard({
               </details>
             ))}
           </div>
+          </details>
           <div className="mt-6 flex flex-wrap gap-2">
-            {ratings.map((rating) => (
-              <button key={rating.id} className="sb-button-secondary" onClick={() => onRate(rating.id)}>
-                {rating.label}
+            {autoRating ? (
+              <button className="sb-action-primary" onClick={() => onRate(autoRating)}>
+                Registra e continua
               </button>
-            ))}
+            ) : ratings.map((rating) => (
+                <button key={rating.id} className="sb-button-secondary" onClick={() => onRate(rating.id)}>
+                  {rating.label}
+                </button>
+              ))}
           </div>
           <QuestionChat questionId={question.id} />
         </div>
@@ -546,10 +659,10 @@ function QuestionChat({ questionId }: { questionId: string }) {
       .catch(() => setMessages([]));
   }, [questionId]);
 
-  async function sendMessage() {
-    const content = draft.trim();
+  async function sendMessage(contentOverride?: string) {
+    const content = (contentOverride ?? draft).trim();
     if (!content) return;
-    setDraft("");
+    if (!contentOverride) setDraft("");
     setLoading(true);
     setMessages((items) => [...items, { id: `local-${Date.now()}`, role: "user", content }]);
     try {
@@ -567,6 +680,13 @@ function QuestionChat({ questionId }: { questionId: string }) {
   return (
     <section className="mt-6 rounded-lg border border-[var(--sb-border)] bg-[var(--sb-surface3)] p-4">
       <h3 className="text-sm font-bold text-[var(--sb-text)]">Chat sul concetto</h3>
+      <button
+        className="sb-button-secondary mt-3"
+        disabled={loading}
+        onClick={() => sendMessage("Genera una spiegazione sintetica e autonoma della risposta usando solo i chunk citati. Evita di copiare i chunk: costruisci un blocco chiaro per ripassare il concetto.")}
+      >
+        Genera spiegazione dai chunk
+      </button>
       <div className="mt-3 grid max-h-64 gap-2 overflow-auto">
         {messages.length ? messages.map((message) => (
           <div key={message.id} className={`rounded-lg border p-3 text-sm leading-6 ${message.role === "assistant" ? "border-[var(--sb-border)] bg-white text-[#40524d]" : "border-[#b7ddcf] bg-[#e6f5ef] text-[var(--sb-text)]"}`}>
@@ -581,7 +701,7 @@ function QuestionChat({ questionId }: { questionId: string }) {
           onChange={(event) => setDraft(event.target.value)}
           onKeyDown={(event) => { if (event.key === "Enter") void sendMessage(); }}
         />
-        <button className="sb-button-secondary" disabled={loading} onClick={sendMessage}>
+        <button className="sb-button-secondary" disabled={loading} onClick={() => sendMessage()}>
           Invia
         </button>
       </div>

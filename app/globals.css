@@ -259,6 +259,24 @@ summary::-webkit-details-marker {
     background: var(--sb-surface3);
     padding: 0.8rem 0.9rem;
     color: var(--sb-text);
+    transition: border-color 150ms ease, background 150ms ease, box-shadow 150ms ease;
+  }
+
+  .sb-option:hover,
+  .sb-option[data-selected="true"] {
+    border-color: #7fb9a2;
+    background: #f4fbf8;
+    box-shadow: 0 0 0 2px rgb(127 185 162 / 0.16);
+  }
+
+  .sb-option[data-correct="true"] {
+    border-color: #44a47f;
+    background: #e7f7f0;
+  }
+
+  .sb-option[data-wrong="true"] {
+    border-color: #d8847c;
+    background: #fff0ee;
   }
 
   .sb-option-letter {
