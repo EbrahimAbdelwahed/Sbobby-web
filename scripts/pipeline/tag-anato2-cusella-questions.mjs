@@ -26,6 +26,7 @@ const sql = neon(process.env.DATABASE_URL);
 
 const moduleId = "anatomia_2_cusella";
 const topicId = "anatomia_2_cusella_source_questions";
+const misplacedSncTopicId = "anatomia_architettura_generale_del_snc_e_periferico";
 const sourcePattern = "%ANATO 2 CUSELLA 2024-2025%";
 
 await sql.query(
@@ -59,20 +60,50 @@ await sql.query(
   [topicId, moduleId, JSON.stringify(["Anatomia 2 (prof. Cusella)", "Domande da ANATO 2 CUSELLA 2024-2025"])],
 );
 
-const rows = await sql.query(
-  `WITH anato2_questions AS (
+const sourceQuestionCte = `WITH anato2_questions AS (
      SELECT DISTINCT qe.question_id
      FROM question_explanations qe
      JOIN LATERAL jsonb_array_elements_text(qe.source_chunk_ids) source_chunk_id(id) ON true
      JOIN source_chunks sc ON sc.id = source_chunk_id.id
      WHERE sc.source_path ILIKE $1 OR sc.source_title ILIKE $1
-   )
+   )`;
+
+const beforeMisplaced = await sql.query(
+  `${sourceQuestionCte}
+   SELECT COUNT(*)::int AS count
+   FROM question_topic_map qtm
+   JOIN anato2_questions aq ON aq.question_id = qtm.question_id
+   WHERE qtm.topic_id = $2`,
+  [sourcePattern, misplacedSncTopicId],
+);
+
+const rows = await sql.query(
+  `${sourceQuestionCte}
    INSERT INTO question_topic_map (question_id, topic_id)
    SELECT question_id, $2
    FROM anato2_questions
    ON CONFLICT DO NOTHING
    RETURNING question_id`,
   [sourcePattern, topicId],
+);
+
+const removedMisplaced = await sql.query(
+  `${sourceQuestionCte}
+   DELETE FROM question_topic_map qtm
+   USING anato2_questions aq
+   WHERE qtm.question_id = aq.question_id
+     AND qtm.topic_id = $2
+   RETURNING qtm.question_id`,
+  [sourcePattern, misplacedSncTopicId],
+);
+
+const afterMisplaced = await sql.query(
+  `${sourceQuestionCte}
+   SELECT COUNT(*)::int AS count
+   FROM question_topic_map qtm
+   JOIN anato2_questions aq ON aq.question_id = qtm.question_id
+   WHERE qtm.topic_id = $2`,
+  [sourcePattern, misplacedSncTopicId],
 );
 
 const totals = await sql.query(
@@ -86,4 +117,29 @@ const totals = await sql.query(
   [topicId],
 );
 
-console.log(JSON.stringify({ moduleId, topicId, inserted: rows.length, totals: totals[0] }, null, 2));
+const sncTotals = await sql.query(
+  `SELECT
+     COUNT(*) FILTER (WHERE q.publication_status = 'published')::int AS published,
+     COUNT(*)::int AS total
+   FROM question_topic_map qtm
+   JOIN questions q ON q.id = qtm.question_id
+   WHERE qtm.topic_id = $1`,
+  [misplacedSncTopicId],
+);
+
+console.log(
+  JSON.stringify(
+    {
+      moduleId,
+      topicId,
+      inserted: rows.length,
+      removedMisplacedFromSnc: removedMisplaced.length,
+      misplacedSncBefore: beforeMisplaced[0],
+      misplacedSncAfter: afterMisplaced[0],
+      totals: totals[0],
+      sncTopicTotals: sncTotals[0],
+    },
+    null,
+    2,
+  ),
+);
