@@ -56,11 +56,53 @@ summary::-webkit-details-marker {
 
 @layer components {
   .sb-page {
-    min-height: 100vh;
+    min-height: calc(100vh - 3.5rem);
     background:
       linear-gradient(180deg, rgb(255 255 255 / 0.72), rgb(244 246 245 / 0) 18rem),
       var(--sb-bg);
     color: var(--sb-text);
+  }
+
+  .sb-topnav {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    min-height: 3.5rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid var(--sb-border);
+    background: rgb(255 255 255 / 0.92);
+    padding: 0.65rem 1rem;
+    backdrop-filter: blur(14px);
+  }
+
+  .sb-topnav-brand {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: var(--sb-text);
+  }
+
+  .sb-topnav-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.35rem;
+  }
+
+  .sb-topnav-links a {
+    border-radius: 8px;
+    padding: 0.45rem 0.65rem;
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--sb-text-dim);
+  }
+
+  .sb-topnav-links a:hover {
+    background: var(--sb-accent-soft);
+    color: var(--sb-accent-dim);
   }
 
   .sb-shell {

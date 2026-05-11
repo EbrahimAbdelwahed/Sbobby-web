@@ -2,6 +2,7 @@ export type Rating = "wrong" | "partial" | "correct" | "easy";
 export type PublicationStatus = "unpublished" | "published" | "rejected" | "needs_repair" | "not_recoverable";
 export type SharedStudyStatus = "open" | "active" | "completed" | "archived";
 export type ChatRole = "user" | "assistant" | "system";
+export type CardReportReason = "formatting_text" | "wrong_answer" | "wrong_exam_program";
 
 export interface Subject {
   id: string;
@@ -235,6 +236,27 @@ export interface ChatMessage {
   createdAt: string;
 }
 
+export interface CardReport {
+  id: string;
+  questionId: string;
+  userId: string;
+  reason: CardReportReason;
+  note: string | null;
+  status: "open" | "reviewing" | "resolved" | "dismissed";
+  createdAt: string;
+  resolvedAt: string | null;
+  resolvedBy: string | null;
+}
+
+export interface AgentReviewLog {
+  id: string;
+  questionId: string;
+  actorUserId: string;
+  action: string;
+  patch: Record<string, unknown>;
+  createdAt: string;
+}
+
 export interface SeedData {
   generatedBy: string;
   subjects: Subject[];
@@ -262,4 +284,5 @@ export interface QuestionView extends Question {
     correct: number;
     lastRating: Rating | null;
   };
+  reportCount?: number;
 }

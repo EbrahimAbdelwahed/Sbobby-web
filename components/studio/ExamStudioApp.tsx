@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { signOut } from "next-auth/react";
 
 import type {
+  CardReportReason,
   QuestionExplanation,
   QuestionView,
   Rating,
@@ -57,6 +58,12 @@ const evidenceOptions: Array<{ id: QuestionExplanation["evidenceStatus"]; label:
   { id: "partially_supported", label: "Parziale" },
   { id: "insufficient_evidence", label: "Evidenza insufficiente" },
   { id: "conflicting_sources", label: "Fonti in conflitto" },
+];
+
+const reportReasons: Array<{ id: CardReportReason; label: string }> = [
+  { id: "formatting_text", label: "Formattazione/testo sbagliati" },
+  { id: "wrong_answer", label: "Risposta sbagliata o infattuale" },
+  { id: "wrong_exam_program", label: "Non appartiene al programma flaggato" },
 ];
 
 type McqOutcome = {
@@ -155,17 +162,18 @@ export function ExamStudioApp() {
 
   async function loadBase() {
     setLoading(true);
-    const [me, subjectsPayload, topicsPayload] = await Promise.all([
-      jsonFetch<{ user: User }>("/api/auth/me"),
-      jsonFetch<{ subjects: Subject[] }>("/api/subjects"),
-      jsonFetch<{ topics: TopicWithModule[]; tree: TopicTreeNode[] }>("/api/topics"),
-    ]);
-    setUser(me.user);
-    setSubjects(subjectsPayload.subjects);
-    setTopics(topicsPayload.topics ?? []);
-    setTopicTree(topicsPayload.tree ?? []);
+    const payload = await jsonFetch<{
+      user: User;
+      subjects: Subject[];
+      topics: TopicWithModule[];
+      tree: TopicTreeNode[];
+    }>("/api/bootstrap");
+    setUser(payload.user);
+    setSubjects(payload.subjects);
+    setTopics(payload.topics ?? []);
+    setTopicTree(payload.tree ?? []);
     setLoading(false);
-    if (!me.user) {
+    if (!payload.user) {
       window.location.href = "/login";
     }
   }
@@ -198,9 +206,14 @@ export function ExamStudioApp() {
   useEffect(() => {
     if (!loading) {
       void loadQuestions();
-      void loadStats();
     }
   }, [loading, subject, selectedTopicIds.join(","), wrongBefore, questionLimit]);
+
+  useEffect(() => {
+    if (!loading && tab === "stats") {
+      void loadStats();
+    }
+  }, [loading, tab]);
 
   function toggleTopicNode(node: TopicTreeNode) {
     const ids = collectTopicIds(node);
@@ -671,6 +684,7 @@ function StudyCard({
               ))}
           </div>
           <QuestionChat questionId={question.id} />
+          <CardReportForm questionId={question.id} />
         </div>
       ) : null}
       </div>
@@ -739,6 +753,53 @@ function QuestionChat({ questionId }: { questionId: string }) {
   );
 }
 
+function CardReportForm({ questionId }: { questionId: string }) {
+  const [reason, setReason] = useState<CardReportReason>("formatting_text");
+  const [note, setNote] = useState("");
+  const [message, setMessage] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function submitReport() {
+    setLoading(true);
+    setMessage(null);
+    try {
+      await jsonFetch(`/api/questions/${questionId}/reports`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason, note }),
+      });
+      setNote("");
+      setMessage("Segnalazione inviata");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Segnalazione non inviata");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <details className="mt-5 rounded-lg border border-[var(--sb-border)] bg-white p-4">
+      <summary className="cursor-pointer text-sm font-bold text-[var(--sb-text)]">Segnala un errore nella card</summary>
+      <div className="mt-3 grid gap-3">
+        <label className="grid gap-1 text-sm font-semibold text-[#40524d]">
+          Tipo di problema
+          <select className="sb-input" value={reason} onChange={(event) => setReason(event.target.value as CardReportReason)}>
+            {reportReasons.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
+          </select>
+        </label>
+        <label className="grid gap-1 text-sm font-semibold text-[#40524d]">
+          Nota opzionale
+          <textarea className="sb-textarea min-h-20" value={note} onChange={(event) => setNote(event.target.value)} />
+        </label>
+        <div className="flex flex-wrap items-center gap-3">
+          <button className="sb-button-secondary" disabled={loading} onClick={submitReport}>Invia segnalazione</button>
+          {message ? <span className="text-sm font-medium text-[var(--sb-text-dim)]">{message}</span> : null}
+        </div>
+      </div>
+    </details>
+  );
+}
+
 function ReviewCard({
   question,
   reliabilityLevels,
@@ -760,6 +821,7 @@ function ReviewCard({
         <span className="sb-badge">{question.reviewStatus.label}</span>
         <span className={`sb-badge ${tokenClass(question.reliabilityLevel.colorToken)}`}>{question.reliabilityLevel.label}</span>
         {question.explanation ? <span className={`sb-badge ${evidenceClass(question.explanation.evidenceStatus)}`}>{question.explanation.evidenceStatus}</span> : null}
+        {question.reportCount ? <span className="sb-badge border-[#efc0bb] bg-[#fff0ee] text-[#a73732]">{question.reportCount} segnalazioni</span> : null}
         </div>
       </div>
       <div className="p-4">

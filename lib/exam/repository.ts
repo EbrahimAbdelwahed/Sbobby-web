@@ -2,6 +2,9 @@ import { neon } from "@neondatabase/serverless";
 
 import seed from "@/data/seed.json";
 import type {
+  AgentReviewLog,
+  CardReport,
+  CardReportReason,
   Module,
   ChatMessage,
   ChatRole,
@@ -327,6 +330,27 @@ async function ensureSchema() {
       created_at timestamptz NOT NULL DEFAULT now()
     );
 
+    CREATE TABLE IF NOT EXISTS card_reports (
+      id text PRIMARY KEY,
+      question_id text NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+      user_id text NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      reason text NOT NULL,
+      note text,
+      status text NOT NULL DEFAULT 'open',
+      created_at timestamptz NOT NULL DEFAULT now(),
+      resolved_at timestamptz,
+      resolved_by text
+    );
+
+    CREATE TABLE IF NOT EXISTS agent_review_logs (
+      id text PRIMARY KEY,
+      question_id text NOT NULL REFERENCES questions(id) ON DELETE CASCADE,
+      actor_user_id text NOT NULL,
+      action text NOT NULL,
+      patch jsonb NOT NULL DEFAULT '{}'::jsonb,
+      created_at timestamptz NOT NULL DEFAULT now()
+    );
+
     CREATE INDEX IF NOT EXISTS idx_topics_subject ON topics(subject);
     CREATE INDEX IF NOT EXISTS idx_topics_parent ON topics(parent_topic_id);
     CREATE INDEX IF NOT EXISTS idx_questions_subject ON questions(subject);
@@ -335,6 +359,8 @@ async function ensureSchema() {
     CREATE INDEX IF NOT EXISTS idx_review_events_user_question ON review_events(user_id, question_id);
     CREATE INDEX IF NOT EXISTS idx_shared_answers_session_question ON shared_study_answers(session_id, question_id);
     CREATE INDEX IF NOT EXISTS idx_chat_messages_thread ON chat_messages(thread_id, created_at);
+    CREATE INDEX IF NOT EXISTS idx_card_reports_question_status ON card_reports(question_id, status);
+    CREATE INDEX IF NOT EXISTS idx_agent_review_logs_question ON agent_review_logs(question_id, created_at);
   `;
   for (const statement of schemaSql.split(";").map((item) => item.trim()).filter(Boolean)) {
     await sql.query(statement);
@@ -706,13 +732,28 @@ async function getQuestionStatsMap(userId: string) {
   );
 }
 
+async function getReportCountMap(questionIds: string[]) {
+  await ensureDb();
+  if (questionIds.length === 0) return new Map<string, number>();
+  const rows = (await sql.query(
+    `SELECT question_id, COUNT(*)::int AS count
+     FROM card_reports
+     WHERE question_id = ANY($1::text[]) AND status IN ('open', 'reviewing')
+     GROUP BY question_id`,
+    [questionIds],
+  )) as Row[];
+  return new Map(rows.map((row) => [String(row.question_id), Number(row.count)]));
+}
+
 async function getQuestionViews(rows: Row[], userId: string): Promise<QuestionView[]> {
-  const [subjects, topics, reliabilityLevels, reviewStatuses, statsMap] = await Promise.all([
+  const questionIds = rows.map((row) => String(row.id));
+  const [subjects, topics, reliabilityLevels, reviewStatuses, statsMap, reportCountMap] = await Promise.all([
     getSubjects(),
     getTopics(),
     getReliabilityLevels(),
     getReviewStatuses(),
     getQuestionStatsMap(userId),
+    getReportCountMap(questionIds),
   ]);
   const subjectMap = new Map(subjects.map((item) => [item.id, item]));
   const topicMap = new Map(topics.map((item) => [item.id, item]));
@@ -744,6 +785,7 @@ async function getQuestionViews(rows: Row[], userId: string): Promise<QuestionVi
       explanation,
       sourceChunks,
       userStats: stats,
+      reportCount: reportCountMap.get(question.id) ?? 0,
     };
   });
 }
@@ -1026,6 +1068,10 @@ export async function getReviewQueue(userId: string): Promise<QuestionView[]> {
        OR q.review_status_id <> 'approved'
        OR q.needs_review = true
        OR EXISTS (
+         SELECT 1 FROM card_reports cr
+         WHERE cr.question_id = q.id AND cr.status IN ('open', 'reviewing')
+       )
+       OR EXISTS (
          SELECT 1 FROM question_explanations qex
          WHERE qex.question_id = q.id
            AND (
@@ -1038,6 +1084,142 @@ export async function getReviewQueue(userId: string): Promise<QuestionView[]> {
     200,
   );
   return getQuestionViews(rows, userId);
+}
+
+function mapCardReport(row: Row): CardReport {
+  return {
+    id: String(row.id),
+    questionId: String(row.question_id),
+    userId: String(row.user_id),
+    reason: String(row.reason) as CardReportReason,
+    note: row.note ? String(row.note) : null,
+    status: String(row.status) as CardReport["status"],
+    createdAt: new Date(String(row.created_at)).toISOString(),
+    resolvedAt: row.resolved_at ? new Date(String(row.resolved_at)).toISOString() : null,
+    resolvedBy: row.resolved_by ? String(row.resolved_by) : null,
+  };
+}
+
+function mapAgentReviewLog(row: Row): AgentReviewLog {
+  return {
+    id: String(row.id),
+    questionId: String(row.question_id),
+    actorUserId: String(row.actor_user_id),
+    action: String(row.action),
+    patch: json<Record<string, unknown>>(row.patch, {}),
+    createdAt: new Date(String(row.created_at)).toISOString(),
+  };
+}
+
+export async function createCardReport(input: {
+  questionId: string;
+  userId: string;
+  reason: CardReportReason;
+  note?: string | null;
+}) {
+  await ensureDb();
+  if (!(await canAccessQuestion(input.questionId))) {
+    throw new Error("Question is not available");
+  }
+  const id = makeId("report");
+  await sql.query(
+    `INSERT INTO card_reports (id, question_id, user_id, reason, note, status, created_at)
+     VALUES ($1, $2, $3, $4, $5, 'open', now())`,
+    [
+      id,
+      input.questionId,
+      normalizeUserId(input.userId),
+      input.reason,
+      input.note?.trim() ? input.note.trim().slice(0, 1200) : null,
+    ],
+  );
+  const rows = (await sql.query("SELECT * FROM card_reports WHERE id = $1", [id])) as Row[];
+  return rows[0] ? mapCardReport(rows[0]) : null;
+}
+
+export async function listQuestionReports(questionId: string) {
+  await ensureDb();
+  const rows = (await sql.query(
+    "SELECT * FROM card_reports WHERE question_id = $1 ORDER BY created_at DESC LIMIT 50",
+    [questionId],
+  )) as Row[];
+  return rows.map(mapCardReport);
+}
+
+export async function updateQuestionReportsForReview(input: {
+  questionId: string;
+  status: CardReport["status"];
+  resolvedBy: string;
+}) {
+  await ensureDb();
+  await sql.query(
+    `UPDATE card_reports
+     SET status = $2,
+         resolved_at = CASE WHEN $2 IN ('resolved', 'dismissed') THEN now() ELSE resolved_at END,
+         resolved_by = CASE WHEN $2 IN ('resolved', 'dismissed') THEN $3 ELSE resolved_by END
+     WHERE question_id = $1 AND status IN ('open', 'reviewing')`,
+    [input.questionId, input.status, normalizeUserId(input.resolvedBy)],
+  );
+}
+
+export async function getAgentReviewQueue(input: {
+  userId: string;
+  limit?: number;
+  cursor?: string | null;
+  includePublished?: boolean;
+}) {
+  const limit = Math.max(1, Math.min(50, input.limit ?? 20));
+  const params: unknown[] = [];
+  const clauses = [
+    `(q.publication_status <> 'published'
+      OR q.review_status_id <> 'approved'
+      OR q.needs_review = true
+      OR EXISTS (
+        SELECT 1 FROM card_reports cr
+        WHERE cr.question_id = q.id AND cr.status IN ('open', 'reviewing')
+      )
+      OR EXISTS (
+        SELECT 1 FROM question_explanations qex
+        WHERE qex.question_id = q.id
+          AND (qex.needs_human_review = true OR qex.evidence_status <> 'supported' OR jsonb_array_length(qex.source_chunk_ids) = 0)
+      ))`,
+  ];
+  if (input.includePublished) {
+    clauses.length = 0;
+    clauses.push("q.is_active = true");
+  }
+  if (input.cursor) {
+    params.push(input.cursor);
+    clauses.push(`q.id > $${params.length}`);
+  }
+  const rows = await questionRows(`WHERE ${clauses.join(" AND ")}`, params, limit);
+  const questions = await getQuestionViews(rows, input.userId);
+  const reportsByQuestionId: Record<string, CardReport[]> = {};
+  await Promise.all(questions.map(async (question) => {
+    reportsByQuestionId[question.id] = await listQuestionReports(question.id);
+  }));
+  return {
+    questions,
+    reportsByQuestionId,
+    nextCursor: questions.length === limit ? questions[questions.length - 1]?.id ?? null : null,
+  };
+}
+
+export async function createAgentReviewLog(input: {
+  questionId: string;
+  actorUserId: string;
+  action: string;
+  patch: Record<string, unknown>;
+}) {
+  await ensureDb();
+  const id = makeId("agentlog");
+  await sql.query(
+    `INSERT INTO agent_review_logs (id, question_id, actor_user_id, action, patch, created_at)
+     VALUES ($1, $2, $3, $4, $5::jsonb, now())`,
+    [id, input.questionId, normalizeUserId(input.actorUserId), input.action, JSON.stringify(input.patch)],
+  );
+  const rows = (await sql.query("SELECT * FROM agent_review_logs WHERE id = $1", [id])) as Row[];
+  return rows[0] ? mapAgentReviewLog(rows[0]) : null;
 }
 
 export async function updateQuestionReview(
