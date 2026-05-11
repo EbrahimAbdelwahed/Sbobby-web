@@ -20,11 +20,20 @@ export async function PATCH(
     answer?: string;
     explanationShort?: string;
     rationale?: string;
-    evidenceStatus?: "supported" | "partially_supported" | "insufficient_evidence" | "conflicting_sources";
+    evidenceStatus?: "supported" | "externally_supported" | "partially_supported" | "insufficient_evidence" | "conflicting_sources";
     confidence?: number;
     warnings?: string[];
     needsHumanReview?: boolean;
     sourceChunkIds?: string[];
+    externalSourceUrls?: string[];
+    externalSources?: Array<{
+      url: string;
+      title?: string;
+      publisher?: string;
+      accessedAt?: string;
+      retrievalQuery?: string;
+      excerpt?: string;
+    }>;
     publicationStatus?: "unpublished" | "published" | "rejected" | "needs_repair" | "not_recoverable";
     adminNote?: string | null;
   };

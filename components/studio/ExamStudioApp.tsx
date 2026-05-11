@@ -55,6 +55,7 @@ const ratings: Array<{ id: Rating; label: string }> = [
 
 const evidenceOptions: Array<{ id: QuestionExplanation["evidenceStatus"]; label: string }> = [
   { id: "supported", label: "Supportata" },
+  { id: "externally_supported", label: "Supportata da fonti esterne" },
   { id: "partially_supported", label: "Parziale" },
   { id: "insufficient_evidence", label: "Evidenza insufficiente" },
   { id: "conflicting_sources", label: "Fonti in conflitto" },
@@ -670,6 +671,12 @@ function StudyCard({
                 <p className="mt-2 leading-6 text-[var(--sb-text-dim)]">{chunk.textClean.slice(0, 700)}</p>
               </details>
             ))}
+            {question.explanation.externalSources.slice(0, 4).map((source) => (
+              <a key={source.url} className="sb-source-box block" href={source.url} target="_blank" rel="noreferrer">
+                <span className="font-semibold text-[var(--sb-text)]">{source.title || source.publisher || source.url}</span>
+                {source.excerpt ? <p className="mt-2 leading-6 text-[var(--sb-text-dim)]">{source.excerpt}</p> : null}
+              </a>
+            ))}
           </div>
           </details>
           <div className="mt-6 flex flex-wrap gap-2">
@@ -862,6 +869,12 @@ function ReviewCard({
             <summary className="cursor-pointer font-semibold text-[var(--sb-text)]">{chunk.sourceTitle}</summary>
             <p className="mt-2 leading-6">{chunk.textClean.slice(0, 520)}</p>
           </details>
+        ))}
+        {question.explanation?.externalSources.slice(0, 4).map((source) => (
+          <a key={source.url} className="sb-source-box block text-[var(--sb-text-dim)]" href={source.url} target="_blank" rel="noreferrer">
+            <span className="font-semibold text-[var(--sb-text)]">{source.title || source.publisher || source.url}</span>
+            {source.excerpt ? <p className="mt-2 leading-6">{source.excerpt}</p> : null}
+          </a>
         ))}
       </div>
       <div className="mt-4 flex flex-wrap gap-2">

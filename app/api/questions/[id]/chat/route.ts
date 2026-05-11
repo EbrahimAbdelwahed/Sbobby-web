@@ -86,16 +86,22 @@ export async function POST(
   const sourceText = question.sourceChunks
     .map((chunk, index) => `[${index + 1}] ${chunk.id} - ${chunk.sourceTitle}\n${chunk.textClean}`)
     .join("\n\n");
+  const externalText = question.explanation.externalSources
+    .map((source, index) => {
+      const label = source.title || source.publisher || source.url;
+      return `[E${index + 1}] ${label}\n${source.url}${source.excerpt ? `\n${source.excerpt}` : ""}`;
+    })
+    .join("\n\n");
   const previous = (await getChatMessages(thread.id, user.email, admin)) ?? [];
   const llmMessages = [
     {
       role: "system" as const,
       content:
-        "Sei il tutor di Sbobby Web. Usa solo i chunk forniti e la risposta approvata. Non usare conoscenza esterna. Se i chunk non bastano, dillo chiaramente. Cita sempre i chunk con [numero] o chunkId.",
+        "Sei il tutor di Sbobby Web. Usa solo i chunk forniti, le eventuali fonti esterne approvate e la risposta approvata. Non usare altra conoscenza esterna. Se le fonti non bastano, dillo chiaramente. Cita i chunk con [numero]/chunkId e le fonti esterne con [E numero].",
     },
     {
       role: "user" as const,
-      content: `Domanda: ${question.questionText}\nRisposta approvata: ${question.explanation.answer}\nSpiegazione approvata: ${question.explanation.explanationShort}\n\nChunk disponibili:\n${sourceText}`,
+      content: `Domanda: ${question.questionText}\nRisposta approvata: ${question.explanation.answer}\nSpiegazione approvata: ${question.explanation.explanationShort}\n\nChunk disponibili:\n${sourceText || "Nessun chunk locale approvato."}\n\nFonti esterne approvate:\n${externalText || "Nessuna fonte esterna approvata."}`,
     },
     ...previous.slice(-8).map((item) => ({
       role: item.role === "assistant" ? "assistant" as const : "user" as const,
@@ -104,11 +110,18 @@ export async function POST(
   ];
   try {
     const answer = await callDeepSeek(llmMessages);
-    const citations = question.sourceChunks.map((chunk) => ({
-      chunkId: chunk.id,
-      sourceTitle: chunk.sourceTitle,
-      sourcePath: chunk.sourcePath,
-    }));
+    const citations = [
+      ...question.sourceChunks.map((chunk) => ({
+        chunkId: chunk.id,
+        sourceTitle: chunk.sourceTitle,
+        sourcePath: chunk.sourcePath,
+      })),
+      ...question.explanation.externalSources.map((source) => ({
+        externalUrl: source.url,
+        sourceTitle: source.title ?? source.publisher ?? source.url,
+        sourcePath: source.url,
+      })),
+    ];
     const assistantMessage = await createChatMessage({
       threadId: thread.id,
       role: "assistant",

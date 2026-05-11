@@ -255,12 +255,17 @@ async function ensureSchema() {
       explanation_short text NOT NULL,
       rationale text NOT NULL,
       source_chunk_ids jsonb NOT NULL,
+      external_source_urls jsonb NOT NULL DEFAULT '[]'::jsonb,
+      external_sources jsonb NOT NULL DEFAULT '[]'::jsonb,
       evidence_status text NOT NULL,
       confidence double precision NOT NULL,
       warnings jsonb NOT NULL,
       model text NOT NULL,
       needs_human_review boolean NOT NULL
     );
+
+    ALTER TABLE question_explanations ADD COLUMN IF NOT EXISTS external_source_urls jsonb NOT NULL DEFAULT '[]'::jsonb;
+    ALTER TABLE question_explanations ADD COLUMN IF NOT EXISTS external_sources jsonb NOT NULL DEFAULT '[]'::jsonb;
 
     CREATE TABLE IF NOT EXISTS study_sessions (
       id text PRIMARY KEY,
@@ -659,6 +664,8 @@ function mapExplanation(row: Row | null | undefined): QuestionExplanation | null
     explanationShort: String(row.explanation_short),
     rationale: String(row.rationale),
     sourceChunkIds: json<string[]>(row.source_chunk_ids, []),
+    externalSourceUrls: json<string[]>(row.external_source_urls, []),
+    externalSources: json<QuestionExplanation["externalSources"]>(row.external_sources, []),
     evidenceStatus: String(row.evidence_status) as QuestionExplanation["evidenceStatus"],
     confidence: Number(row.confidence),
     warnings: json<string[]>(row.warnings, []),
@@ -687,6 +694,8 @@ async function questionRows(whereSql: string, params: unknown[], limit = 100) {
        qe.explanation_short,
        qe.rationale,
        qe.source_chunk_ids,
+       qe.external_source_urls,
+       qe.external_sources,
        qe.evidence_status,
        qe.confidence,
        qe.warnings,
@@ -802,13 +811,40 @@ function publishedQuestionSql(alias = "q", explanationAlias = "qe") {
     `${alias}.is_active = true`,
     `${alias}.publication_status = 'published'`,
     `${explanationAlias}.id IS NOT NULL`,
-    `${explanationAlias}.evidence_status = 'supported'`,
-    `jsonb_array_length(${explanationAlias}.source_chunk_ids) > 0`,
-    `EXISTS (
-      SELECT 1 FROM source_chunks sc
-      WHERE sc.id IN (SELECT jsonb_array_elements_text(${explanationAlias}.source_chunk_ids))
+    `${explanationAlias}.evidence_status IN ('supported', 'externally_supported')`,
+    `(
+      (
+        jsonb_array_length(${explanationAlias}.source_chunk_ids) > 0
+        AND EXISTS (
+          SELECT 1 FROM source_chunks sc
+          WHERE sc.id IN (SELECT jsonb_array_elements_text(${explanationAlias}.source_chunk_ids))
+        )
+      )
+      OR (
+        ${explanationAlias}.evidence_status = 'externally_supported'
+        AND (
+          jsonb_array_length(${explanationAlias}.external_source_urls) > 0
+          OR jsonb_array_length(${explanationAlias}.external_sources) > 0
+        )
+      )
     )`,
   ];
+}
+
+function explanationNeedsReviewSql(alias = "qex") {
+  return `(
+    ${alias}.needs_human_review = true
+    OR ${alias}.evidence_status NOT IN ('supported', 'externally_supported')
+    OR (
+      ${alias}.evidence_status = 'supported'
+      AND jsonb_array_length(${alias}.source_chunk_ids) = 0
+    )
+    OR (
+      ${alias}.evidence_status = 'externally_supported'
+      AND jsonb_array_length(${alias}.external_source_urls) = 0
+      AND jsonb_array_length(${alias}.external_sources) = 0
+    )
+  )`;
 }
 
 export async function userHasRole(userId: string, role: "admin") {
@@ -1064,22 +1100,25 @@ export async function createReviewEvent(input: {
 
 export async function getReviewQueue(userId: string): Promise<QuestionView[]> {
   const rows = await questionRows(
-    `WHERE q.publication_status <> 'published'
-       OR q.review_status_id <> 'approved'
-       OR q.needs_review = true
-       OR EXISTS (
+    `WHERE (
+       EXISTS (
          SELECT 1 FROM card_reports cr
          WHERE cr.question_id = q.id AND cr.status IN ('open', 'reviewing')
        )
-       OR EXISTS (
-         SELECT 1 FROM question_explanations qex
-         WHERE qex.question_id = q.id
-           AND (
-             qex.needs_human_review = true
-             OR qex.evidence_status <> 'supported'
-             OR jsonb_array_length(qex.source_chunk_ids) = 0
+       OR (
+         q.publication_status NOT IN ('published', 'rejected', 'not_recoverable')
+         AND (
+           q.publication_status <> 'published'
+           OR q.review_status_id <> 'approved'
+           OR q.needs_review = true
+           OR EXISTS (
+             SELECT 1 FROM question_explanations qex
+             WHERE qex.question_id = q.id
+               AND ${explanationNeedsReviewSql("qex")}
            )
-       )`,
+         )
+       )
+     )`,
     [],
     200,
   );
@@ -1171,17 +1210,22 @@ export async function getAgentReviewQueue(input: {
   const limit = Math.max(1, Math.min(50, input.limit ?? 20));
   const params: unknown[] = [];
   const clauses = [
-    `(q.publication_status <> 'published'
-      OR q.review_status_id <> 'approved'
-      OR q.needs_review = true
-      OR EXISTS (
+    `(EXISTS (
         SELECT 1 FROM card_reports cr
         WHERE cr.question_id = q.id AND cr.status IN ('open', 'reviewing')
       )
-      OR EXISTS (
-        SELECT 1 FROM question_explanations qex
-        WHERE qex.question_id = q.id
-          AND (qex.needs_human_review = true OR qex.evidence_status <> 'supported' OR jsonb_array_length(qex.source_chunk_ids) = 0)
+      OR (
+        q.publication_status NOT IN ('published', 'rejected', 'not_recoverable')
+        AND (
+          q.publication_status <> 'published'
+          OR q.review_status_id <> 'approved'
+          OR q.needs_review = true
+          OR EXISTS (
+            SELECT 1 FROM question_explanations qex
+            WHERE qex.question_id = q.id
+              AND ${explanationNeedsReviewSql("qex")}
+          )
+        )
       ))`,
   ];
   if (input.includePublished) {
@@ -1235,6 +1279,8 @@ export async function updateQuestionReview(
     warnings?: string[];
     needsHumanReview?: boolean;
     sourceChunkIds?: string[];
+    externalSourceUrls?: string[];
+    externalSources?: QuestionExplanation["externalSources"];
     publicationStatus?: PublicationStatus;
     adminNote?: string | null;
   },
@@ -1289,6 +1335,8 @@ export async function updateQuestionReview(
     patch.warnings !== undefined ||
     patch.needsHumanReview !== undefined ||
     patch.sourceChunkIds !== undefined ||
+    patch.externalSourceUrls !== undefined ||
+    patch.externalSources !== undefined ||
     patch.reviewStatusId === "approved";
 
   if (shouldUpdateExplanation) {
@@ -1300,6 +1348,8 @@ export async function updateQuestionReview(
          evidence_status = COALESCE($5, evidence_status),
          confidence = COALESCE($6, confidence),
          source_chunk_ids = CASE WHEN $10::jsonb IS NOT NULL THEN $10::jsonb ELSE source_chunk_ids END,
+         external_source_urls = CASE WHEN $11::jsonb IS NOT NULL THEN $11::jsonb ELSE external_source_urls END,
+         external_sources = CASE WHEN $12::jsonb IS NOT NULL THEN $12::jsonb ELSE external_sources END,
          warnings = CASE
            WHEN $7::jsonb IS NOT NULL THEN $7::jsonb
            WHEN $9 = 'approved' THEN COALESCE((
@@ -1326,6 +1376,8 @@ export async function updateQuestionReview(
         patch.needsHumanReview ?? null,
         patch.reviewStatusId ?? null,
         patch.sourceChunkIds !== undefined ? JSON.stringify(patch.sourceChunkIds) : null,
+        patch.externalSourceUrls !== undefined ? JSON.stringify(patch.externalSourceUrls) : null,
+        patch.externalSources !== undefined ? JSON.stringify(patch.externalSources) : null,
       ],
     );
   }

@@ -22,6 +22,8 @@ type AgentPatch = {
   warnings?: string[];
   needsHumanReview?: boolean;
   sourceChunkIds?: string[];
+  externalSourceUrls?: string[];
+  externalSources?: QuestionExplanation["externalSources"];
   publicationStatus?: PublicationStatus;
   adminNote?: string | null;
   reportStatus?: "open" | "reviewing" | "resolved" | "dismissed";
@@ -57,6 +59,25 @@ function cleanPatch(body: AgentPatch) {
   if (Array.isArray(body.sourceChunkIds)) {
     patch.sourceChunkIds = body.sourceChunkIds.filter((item) => typeof item === "string");
   }
+  if (Array.isArray(body.externalSourceUrls)) {
+    patch.externalSourceUrls = body.externalSourceUrls
+      .filter((item) => typeof item === "string")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+  if (Array.isArray(body.externalSources)) {
+    patch.externalSources = body.externalSources
+      .filter((item) => item && typeof item === "object" && typeof item.url === "string")
+      .map((item) => ({
+        url: item.url.trim(),
+        title: typeof item.title === "string" ? item.title.trim() : undefined,
+        publisher: typeof item.publisher === "string" ? item.publisher.trim() : undefined,
+        accessedAt: typeof item.accessedAt === "string" ? item.accessedAt.trim() : undefined,
+        retrievalQuery: typeof item.retrievalQuery === "string" ? item.retrievalQuery.trim() : undefined,
+        excerpt: typeof item.excerpt === "string" ? item.excerpt.trim().slice(0, 500) : undefined,
+      }))
+      .filter((item) => item.url);
+  }
   if (typeof body.publicationStatus === "string") patch.publicationStatus = body.publicationStatus;
   if (body.adminNote === null || typeof body.adminNote === "string") patch.adminNote = body.adminNote;
   if (typeof body.reportStatus === "string") patch.reportStatus = body.reportStatus;
@@ -87,6 +108,8 @@ export async function GET(request: NextRequest) {
         patch: "allowed review/explanation/publication fields only",
       },
       note: "Set publicationStatus explicitly. Published cards become visible to users; non-published cards remain admin-only.",
+      externalEvidence:
+        "If local chunks do not support the answer, set evidenceStatus to externally_supported, provide externalSources or externalSourceUrls, and do not invent sourceChunkIds.",
     },
   });
 }

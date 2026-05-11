@@ -127,6 +127,15 @@ export interface SourceChunk {
   quality: string;
 }
 
+export interface ExternalSource {
+  url: string;
+  title?: string;
+  publisher?: string;
+  accessedAt?: string;
+  retrievalQuery?: string;
+  excerpt?: string;
+}
+
 export interface QuestionExplanation {
   id: string;
   questionId: string;
@@ -134,8 +143,11 @@ export interface QuestionExplanation {
   explanationShort: string;
   rationale: string;
   sourceChunkIds: string[];
+  externalSourceUrls: string[];
+  externalSources: ExternalSource[];
   evidenceStatus:
     | "supported"
+    | "externally_supported"
     | "partially_supported"
     | "insufficient_evidence"
     | "conflicting_sources";
@@ -231,7 +243,7 @@ export interface ChatMessage {
   threadId: string;
   role: ChatRole;
   content: string;
-  citations: Array<{ chunkId: string; sourceTitle?: string; sourcePath?: string }>;
+  citations: Array<{ chunkId?: string; externalUrl?: string; sourceTitle?: string; sourcePath?: string }>;
   model: string | null;
   createdAt: string;
 }
