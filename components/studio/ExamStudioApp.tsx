@@ -813,22 +813,25 @@ function ReviewCard({
   draft,
   onDraft,
   onSave,
+  saving,
 }: {
   question: QuestionView;
   reliabilityLevels: ReliabilityLevel[];
   draft: Required<ReviewDraft>;
   onDraft: (patch: ReviewDraft) => void;
   onSave: (patch: Partial<ReviewDraft> & { reviewStatusId?: string; reliabilityLevelId?: string; needsHumanReview?: boolean; publicationStatus?: string }) => void;
+  saving?: boolean;
 }) {
   return (
-    <article className="sb-panel overflow-hidden">
+    <article className={`sb-panel overflow-hidden transition-opacity ${saving ? "opacity-70" : ""}`}>
       <div className="border-b border-[var(--sb-border)] bg-[var(--sb-surface3)] px-4 py-3">
-        <div className="flex flex-wrap gap-2 text-xs">
-        <span className="sb-badge">{question.subjectLabel}</span>
-        <span className="sb-badge">{question.reviewStatus.label}</span>
-        <span className={`sb-badge ${tokenClass(question.reliabilityLevel.colorToken)}`}>{question.reliabilityLevel.label}</span>
-        {question.explanation ? <span className={`sb-badge ${evidenceClass(question.explanation.evidenceStatus)}`}>{question.explanation.evidenceStatus}</span> : null}
-        {question.reportCount ? <span className="sb-badge border-[#efc0bb] bg-[#fff0ee] text-[#a73732]">{question.reportCount} segnalazioni</span> : null}
+        <div className="flex flex-wrap items-center gap-2 text-xs">
+          <span className="sb-badge">{question.subjectLabel}</span>
+          <span className="sb-badge">{question.reviewStatus.label}</span>
+          <span className={`sb-badge ${tokenClass(question.reliabilityLevel.colorToken)}`}>{question.reliabilityLevel.label}</span>
+          {question.explanation ? <span className={`sb-badge ${evidenceClass(question.explanation.evidenceStatus)}`}>{question.explanation.evidenceStatus}</span> : null}
+          {question.reportCount ? <span className="sb-badge border-[#efc0bb] bg-[#fff0ee] text-[#a73732]">{question.reportCount} segnalazioni</span> : null}
+          {saving ? <span className="sb-badge border-[#b9d9d0] bg-[#effaf6] text-[#2c6556]">Salvataggio...</span> : null}
         </div>
       </div>
       <div className="p-4">
@@ -878,12 +881,12 @@ function ReviewCard({
         ))}
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
-        <button className="sb-button-secondary" onClick={() => onSave({ needsHumanReview: true })}>Salva</button>
-        <button className="sb-button-secondary" onClick={() => onSave({ reviewStatusId: "reviewing", reliabilityLevelId: "source_supported", evidenceStatus: "partially_supported", needsHumanReview: true, publicationStatus: "needs_repair" })}>Needs evidence</button>
-        <button className="sb-button-secondary" onClick={() => onSave({ reviewStatusId: "rejected", reliabilityLevelId: "needs_review", needsHumanReview: false, publicationStatus: "rejected" })}>Rifiuta</button>
-        <button className="sb-button-secondary" onClick={() => onSave({ publicationStatus: "unpublished", needsHumanReview: true })}>Unpublish</button>
-        <button className="sb-action-primary" onClick={() => onSave({ reviewStatusId: "approved", reliabilityLevelId: "human_verified", evidenceStatus: "supported", confidence: "1", warnings: "", needsHumanReview: false, publicationStatus: "published" })}>Pubblica</button>
-        <select className="sb-input max-w-56" value={question.reliabilityLevelId} onChange={(event) => onSave({ reliabilityLevelId: event.target.value })}>
+        <button className="sb-button-secondary" disabled={saving} onClick={() => onSave({ needsHumanReview: true })}>Salva</button>
+        <button className="sb-button-secondary" disabled={saving} onClick={() => onSave({ reviewStatusId: "reviewing", reliabilityLevelId: "source_supported", evidenceStatus: "partially_supported", needsHumanReview: true, publicationStatus: "needs_repair" })}>Needs evidence</button>
+        <button className="sb-button-secondary" disabled={saving} onClick={() => onSave({ reviewStatusId: "rejected", reliabilityLevelId: "needs_review", needsHumanReview: false, publicationStatus: "rejected" })}>Rifiuta</button>
+        <button className="sb-button-secondary" disabled={saving} onClick={() => onSave({ publicationStatus: "unpublished", needsHumanReview: true })}>Unpublish</button>
+        <button className="sb-action-primary" disabled={saving} onClick={() => onSave({ reviewStatusId: "approved", reliabilityLevelId: "human_verified", evidenceStatus: "supported", confidence: "1", warnings: "", needsHumanReview: false, publicationStatus: "published" })}>Pubblica</button>
+        <select className="sb-input max-w-56" disabled={saving} value={question.reliabilityLevelId} onChange={(event) => onSave({ reliabilityLevelId: event.target.value })}>
           {reliabilityLevels.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
         </select>
       </div>
@@ -897,6 +900,7 @@ export function AdminReviewApp() {
   const [reliabilityLevels, setReliabilityLevels] = useState<ReliabilityLevel[]>([]);
   const [reviewStatuses, setReviewStatuses] = useState<ReviewStatus[]>([]);
   const [reviewDrafts, setReviewDrafts] = useState<Record<string, ReviewDraft>>({});
+  const [savingQuestions, setSavingQuestions] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -951,7 +955,43 @@ export function AdminReviewApp() {
       .split(",")
       .map((item) => item.trim())
       .filter(Boolean);
-    await jsonFetch(`/api/admin/questions/${question.id}/review`, {
+    const previousQuestion = question;
+    const previousIndex = questions.findIndex((item) => item.id === question.id);
+    const removesFromActiveQueue = patch.publicationStatus === "published" || patch.publicationStatus === "rejected" || patch.publicationStatus === "not_recoverable";
+    const nextReviewStatus = patch.reviewStatusId ? reviewStatuses.find((item) => item.id === patch.reviewStatusId) : undefined;
+    const nextReliabilityLevel = patch.reliabilityLevelId ? reliabilityLevels.find((item) => item.id === patch.reliabilityLevelId) : undefined;
+    const nextQuestion: QuestionView = {
+      ...question,
+      reviewStatusId: patch.reviewStatusId ?? question.reviewStatusId,
+      reliabilityLevelId: patch.reliabilityLevelId ?? question.reliabilityLevelId,
+      publicationStatus: (patch.publicationStatus ?? question.publicationStatus) as QuestionView["publicationStatus"],
+      reviewStatus: nextReviewStatus ?? question.reviewStatus,
+      reliabilityLevel: nextReliabilityLevel ?? question.reliabilityLevel,
+      explanation: question.explanation ? {
+        ...question.explanation,
+        answer: patch.answer ?? draft.answer,
+        explanationShort: patch.explanationShort ?? draft.explanationShort,
+        rationale: patch.rationale ?? draft.rationale,
+        evidenceStatus: patch.evidenceStatus ?? draft.evidenceStatus,
+        confidence: Number.isFinite(confidence) ? Math.max(0, Math.min(1, confidence)) : 0,
+        warnings,
+        needsHumanReview: patch.needsHumanReview ?? question.explanation.needsHumanReview,
+      } : question.explanation,
+    };
+
+    setSavingQuestions((items) => ({ ...items, [question.id]: true }));
+    setMessage(removesFromActiveQueue ? "Pubblicazione in background..." : "Salvataggio in background...");
+    setQuestions((items) => removesFromActiveQueue
+      ? items.filter((item) => item.id !== question.id)
+      : items.map((item) => item.id === question.id ? nextQuestion : item));
+    setReviewDrafts((drafts) => {
+      const nextDrafts = { ...drafts };
+      delete nextDrafts[question.id];
+      return nextDrafts;
+    });
+
+    try {
+      await jsonFetch(`/api/admin/questions/${question.id}/review`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -966,9 +1006,25 @@ export function AdminReviewApp() {
         needsHumanReview: patch.needsHumanReview,
         publicationStatus: patch.publicationStatus,
       }),
-    });
-    setMessage("Review aggiornata");
-    await loadAdmin();
+      });
+      setMessage(removesFromActiveQueue ? "Card pubblicata. Puoi continuare la review." : "Review salvata. Puoi continuare la review.");
+    } catch (error) {
+      setQuestions((items) => {
+        if (!removesFromActiveQueue || items.some((item) => item.id === previousQuestion.id)) {
+          return items.map((item) => item.id === previousQuestion.id ? previousQuestion : item);
+        }
+        const nextItems = [...items];
+        nextItems.splice(Math.max(0, previousIndex), 0, previousQuestion);
+        return nextItems;
+      });
+      setMessage(error instanceof Error ? `Errore salvataggio: ${error.message}` : "Errore salvataggio");
+    } finally {
+      setSavingQuestions((items) => {
+        const nextItems = { ...items };
+        delete nextItems[question.id];
+        return nextItems;
+      });
+    }
   }
 
   return (
@@ -992,6 +1048,7 @@ export function AdminReviewApp() {
                 draft={draftFor(question)}
                 onDraft={(patch) => updateDraft(question.id, patch)}
                 onSave={(patch) => updateQuestion(question, patch)}
+                saving={Boolean(savingQuestions[question.id])}
               />
             ))}
           </div>
