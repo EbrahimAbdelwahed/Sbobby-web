@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { SiteNav } from "@/components/SiteNav";
+import { AppShell } from "@/components/app/AppShell";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,9 +14,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="it" className="h-full">
-      <body className="min-h-full flex flex-col">
-        <SiteNav />
-        {children}
+      <body className="min-h-full">
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );
