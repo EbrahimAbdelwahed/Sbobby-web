@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SectionCard } from "@/components/ui/SectionCard";
@@ -28,6 +28,14 @@ export function SearchPageClient({
   const [data, setData] = useState<SearchResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const searchInputId = useId();
+  const subjectSelectId = useId();
+  const statusLabelId = useId();
+
+  const statusCountById = useMemo(
+    () => new Map<SearchStatusFilter | "", number>(data?.facets.statuses.map((facet) => [facet.id, facet.count]) ?? []),
+    [data?.facets.statuses],
+  );
 
   const searchParams = useMemo(() => {
     const params = new URLSearchParams();
@@ -66,47 +74,69 @@ export function SearchPageClient({
 
   return (
     <div className="space-y-4">
-      <SectionCard>
-        <div className="sb-search-controls">
-          <label className="sb-search-input-wrap">
-            <span className="sb-label">Cerca nelle domande</span>
+      <SectionCard className="sb-question-search-panel">
+        <div className="sb-question-search-header">
+          <h2>Domande</h2>
+          <p>Cerca e filtra le domande per materia e stato.</p>
+        </div>
+
+        <div className="sb-question-search-controls">
+          <div className="sb-question-search-field">
+            <label className="sb-label" htmlFor={searchInputId}>
+              Cerca
+            </label>
             <input
+              id={searchInputId}
               className="sb-input sb-search-input"
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Domande, risposte, spiegazioni, argomenti, fonti"
+              placeholder="Cerca nelle domande..."
               type="search"
               value={query}
             />
-          </label>
-          <label>
-            <span className="sb-label">Materia</span>
-            <select className="sb-input" onChange={(event) => setSubject(event.target.value)} value={subject}>
-              <option value="">Tutte le materie</option>
-              {data?.facets.subjects.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.label} ({item.count})
-                </option>
-              ))}
-            </select>
-          </label>
-          <div>
-            <span className="sb-label">Stato</span>
-            <div className="sb-filter-segments" aria-label="Filtro stato">
-              {statusOptions.filter((item) => !fixedStatus || item.id === status).map((item) => (
-                <button
-                  className="sb-filter-segment"
-                  data-active={status === item.id}
-                  disabled={fixedStatus}
-                  key={item.id || "all"}
-                  onClick={() => setStatus(item.id)}
-                  type="button"
-                >
-                  {item.label}
-                  {data?.facets.statuses.find((facet) => facet.id === item.id)?.count != null ? (
-                    <span>{data.facets.statuses.find((facet) => facet.id === item.id)?.count}</span>
-                  ) : null}
-                </button>
-              ))}
+          </div>
+
+          <div className="sb-question-filter-row">
+            <label className="sb-question-subject-filter" htmlFor={subjectSelectId}>
+              <span className="sb-label">Materia</span>
+              <select
+                id={subjectSelectId}
+                className="sb-input sb-question-subject-select"
+                onChange={(event) => setSubject(event.target.value)}
+                value={subject}
+              >
+                <option value="">Tutte le materie</option>
+                {data?.facets.subjects.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.label} ({item.count})
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <div className="sb-question-status-filter">
+              <span className="sb-label" id={statusLabelId}>
+                Stato
+              </span>
+              <div className="sb-question-status-chips" aria-labelledby={statusLabelId}>
+                {statusOptions.filter((item) => !fixedStatus || item.id === status).map((item) => {
+                  const count = statusCountById.get(item.id);
+
+                  return (
+                    <button
+                      aria-pressed={status === item.id}
+                      className="sb-question-status-chip"
+                      data-active={status === item.id}
+                      disabled={fixedStatus}
+                      key={item.id || "all"}
+                      onClick={() => setStatus(item.id)}
+                      type="button"
+                    >
+                      <span>{item.label}</span>
+                      {count != null ? <span className="sb-question-status-count">{count}</span> : null}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
