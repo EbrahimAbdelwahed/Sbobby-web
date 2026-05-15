@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 
+import { QuestionDetailDialog } from "@/components/questions/QuestionDetailDialog";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { SectionCard } from "@/components/ui/SectionCard";
 import type { SearchResponse, SearchStatusFilter } from "@/lib/search/types";
@@ -28,6 +28,8 @@ export function SearchPageClient({
   const [data, setData] = useState<SearchResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedResult, setSelectedResult] = useState<{ id: string; href: string } | null>(null);
+  const responseCache = useRef(new Map<string, SearchResponse>());
   const searchInputId = useId();
   const subjectSelectId = useId();
   const statusLabelId = useId();
@@ -47,6 +49,15 @@ export function SearchPageClient({
   }, [query, subject, status]);
 
   useEffect(() => {
+    const cacheKey = searchParams.toString();
+    const cached = responseCache.current.get(cacheKey);
+    if (cached) {
+      setData(cached);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     const controller = new AbortController();
     const timeout = window.setTimeout(async () => {
       setLoading(true);
@@ -56,7 +67,9 @@ export function SearchPageClient({
           signal: controller.signal,
         });
         if (!response.ok) throw new Error(`Ricerca non riuscita (${response.status})`);
-        setData((await response.json()) as SearchResponse);
+        const payload = (await response.json()) as SearchResponse;
+        responseCache.current.set(cacheKey, payload);
+        setData(payload);
       } catch (searchError) {
         if (!controller.signal.aborted) {
           setError(searchError instanceof Error ? searchError.message : "Ricerca non riuscita");
@@ -183,14 +196,26 @@ export function SearchPageClient({
                   {result.userStats.correct}
                 </span>
                 <span>{result.source ?? result.reliabilityLabel}</span>
-                <Link className="sb-button-secondary" href={result.href}>
-                  Apri in Studio
-                </Link>
+                <button
+                  className="sb-button-secondary"
+                  onClick={() => setSelectedResult({ id: result.id, href: result.href })}
+                  type="button"
+                >
+                  Apri dettaglio
+                </button>
               </div>
             </article>
           ))}
         </div>
       )}
+      <QuestionDetailDialog
+        open={Boolean(selectedResult)}
+        questionId={selectedResult?.id ?? null}
+        studioHref={selectedResult?.href ?? null}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) setSelectedResult(null);
+        }}
+      />
     </div>
   );
 }

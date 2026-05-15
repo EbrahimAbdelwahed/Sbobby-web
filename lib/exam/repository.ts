@@ -1753,6 +1753,9 @@ export async function getTopicStats(userId: string) {
        t.title,
        t.subject,
        m.title AS "moduleTitle",
+       COUNT(DISTINCT q.id)::int AS "totalQuestions",
+       COUNT(DISTINCT q.id) FILTER (WHERE re.id IS NOT NULL)::int AS "reviewedQuestions",
+       (COUNT(DISTINCT q.id)::int - COUNT(DISTINCT q.id) FILTER (WHERE re.id IS NOT NULL)::int) AS "unseenQuestions",
        COUNT(re.id)::int AS attempts,
        COUNT(re.id) FILTER (WHERE re.rating IN ('wrong', 'partial'))::int AS wrong,
        COUNT(re.id) FILTER (WHERE re.rating IN ('correct', 'easy'))::int AS correct,
@@ -1763,11 +1766,11 @@ export async function getTopicStats(userId: string) {
      JOIN question_topic_map qtm ON qtm.topic_id = t.id
      JOIN questions q ON q.id = qtm.question_id
      JOIN question_explanations qe ON qe.question_id = q.id
-     JOIN review_events re ON re.question_id = qtm.question_id AND re.user_id = $1
+     LEFT JOIN review_events re ON re.question_id = qtm.question_id AND re.user_id = $1
      WHERE ${publishedQuestionSql("q", "qe").join(" AND ")}
      GROUP BY t.id, m.title
-     HAVING COUNT(re.id) > 0
-     ORDER BY "problemScore" DESC
+     HAVING COUNT(DISTINCT q.id) > 0
+     ORDER BY "problemScore" DESC, "reviewedQuestions" DESC, "totalQuestions" DESC
      LIMIT 12`,
     [userId],
   )) as Array<{
@@ -1775,6 +1778,9 @@ export async function getTopicStats(userId: string) {
     title: string;
     subject: string;
     moduleTitle: string;
+    totalQuestions: number;
+    reviewedQuestions: number;
+    unseenQuestions: number;
     attempts: number;
     wrong: number;
     correct: number;

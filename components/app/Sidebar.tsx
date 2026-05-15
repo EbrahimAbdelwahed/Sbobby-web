@@ -16,18 +16,35 @@ function isActive(pathname: string, href: string) {
   return pathname === path || pathname.startsWith(`${path}/`);
 }
 
-export function Sidebar() {
+export function Sidebar({
+  collapsed,
+  onCollapsedChange,
+}: {
+  collapsed: boolean;
+  onCollapsedChange: (collapsed: boolean) => void;
+}) {
   const pathname = usePathname();
 
   return (
-    <aside className="sb-sidebar" aria-label="Navigazione app">
-      <Link className="sb-sidebar-brand" href="/studio">
-        <span className="sb-sidebar-mark">Sb</span>
-        <span>
-          <strong>Sbobby</strong>
-          <small>Studio medico</small>
-        </span>
-      </Link>
+    <aside className="sb-sidebar" aria-label="Navigazione app" data-collapsed={collapsed}>
+      <div className="sb-sidebar-head">
+        <Link className="sb-sidebar-brand" href="/studio" aria-label="Sbobby Studio medico">
+          <span className="sb-sidebar-mark">Sb</span>
+          <span className="sb-sidebar-brand-text">
+            <strong>Sbobby</strong>
+            <small>Studio medico</small>
+          </span>
+        </Link>
+        <button
+          aria-label={collapsed ? "Espandi menu laterale" : "Comprimi menu laterale"}
+          className="sb-sidebar-collapse"
+          onClick={() => onCollapsedChange(!collapsed)}
+          title={collapsed ? "Espandi menu" : "Comprimi menu"}
+          type="button"
+        >
+          <SidebarIcon name={collapsed ? "expand" : "collapse"} />
+        </button>
+      </div>
       <nav className="sb-sidebar-nav">
         {navItems.map((item) => {
           const active = isActive(pathname, item.href);
@@ -38,11 +55,13 @@ export function Sidebar() {
               data-active={active}
               href={item.href}
               key={item.label}
+              title={item.label}
+              aria-label={item.label}
             >
               <span className="sb-sidebar-icon" aria-hidden="true">
                 <SidebarIcon name={item.icon} />
               </span>
-              <span>{item.label}</span>
+              <span className="sb-sidebar-link-label">{item.label}</span>
             </Link>
           );
         })}
@@ -89,6 +108,20 @@ function SidebarIcon({ name }: { name: string }) {
       <svg {...common}>
         <path d="M12 3 5 6v5c0 4.6 3 8.2 7 10 4-1.8 7-5.4 7-10V6l-7-3Z" />
         <path d="m9.5 12 1.7 1.7 3.8-4" />
+      </svg>
+    );
+  }
+  if (name === "collapse") {
+    return (
+      <svg {...common}>
+        <path d="m15 6-6 6 6 6" />
+      </svg>
+    );
+  }
+  if (name === "expand") {
+    return (
+      <svg {...common}>
+        <path d="m9 6 6 6-6 6" />
       </svg>
     );
   }

@@ -25,6 +25,9 @@ type TopicStat = {
   title: string;
   subject: string;
   moduleTitle: string;
+  totalQuestions: number;
+  reviewedQuestions: number;
+  unseenQuestions: number;
   attempts: number;
   wrong: number;
   correct: number;
@@ -467,8 +470,23 @@ export function ExamStudioApp() {
               <MetricCard label="Domande riviste" value={questionStats.filter((item) => item.attempts > 0).length} />
               <MetricCard label="Errori registrati" value={questionStats.reduce((sum, item) => sum + item.wrong, 0)} />
             </div>
+            <section className="sb-panel p-4">
+              <div className="mb-4">
+                <h2 className="text-base font-semibold text-[var(--sb-text)]">Progressi per argomento</h2>
+                <p className="text-sm text-[var(--sb-text-dim)]">
+                  Conteggi reali sulle domande pubblicate: riviste uniche, non viste e tentativi registrati.
+                </p>
+              </div>
+              <div className="space-y-3">
+                {topicStats.length ? (
+                  topicStats.map((item) => <TopicProgressRow key={item.id} item={item} />)
+                ) : (
+                  <p className="text-sm text-[var(--sb-text-dim)]">Nessuna revisione registrata.</p>
+                )}
+              </div>
+            </section>
             <div className="grid gap-5 lg:grid-cols-2">
-              <StatsList title="Argomenti da rivedere" rows={topicStats.map((item) => ({ id: item.id, title: item.title, meta: `${item.moduleTitle} - ${item.wrong}/${item.attempts} errori` }))} />
+              <StatsList title="Argomenti da rivedere" rows={topicStats.map((item) => ({ id: item.id, title: item.title, meta: `${item.moduleTitle} - ${item.wrong}/${item.attempts} tentativi con errore` }))} />
               <StatsList title="Domande con errori" rows={questionStats.map((item) => ({ id: item.id, title: item.questionText, meta: `${item.subject} - ${item.wrong}/${item.attempts} errori` }))} />
             </div>
           </section>
@@ -484,6 +502,40 @@ function MetricCard({ label, value }: { label: string; value: number }) {
       <p className="text-xs font-semibold uppercase tracking-wide text-[var(--sb-text-dim)]">{label}</p>
       <p className="mt-2 text-3xl font-bold text-[var(--sb-text)]">{value}</p>
     </section>
+  );
+}
+
+function TopicProgressRow({ item }: { item: TopicStat }) {
+  const reviewedPercent = item.totalQuestions > 0 ? Math.round((item.reviewedQuestions / item.totalQuestions) * 100) : 0;
+  const correctPercent = item.attempts > 0 ? Math.round((item.correct / item.attempts) * 100) : 0;
+  const wrongPercent = item.attempts > 0 ? Math.round((item.wrong / item.attempts) * 100) : 0;
+
+  return (
+    <article className="sb-topic-progress">
+      <div className="sb-topic-progress-head">
+        <div>
+          <h3>{item.title}</h3>
+          <p>{item.moduleTitle}</p>
+        </div>
+        <span>{reviewedPercent}% riviste</span>
+      </div>
+      <div
+        className="sb-topic-progress-bar"
+        aria-label={`${item.reviewedQuestions} domande riviste su ${item.totalQuestions}`}
+        aria-valuemax={item.totalQuestions}
+        aria-valuemin={0}
+        aria-valuenow={item.reviewedQuestions}
+        role="progressbar"
+      >
+        <span style={{ width: `${reviewedPercent}%` }} />
+      </div>
+      <div className="sb-topic-progress-meta">
+        <span>{item.reviewedQuestions}/{item.totalQuestions} riviste</span>
+        <span>{item.unseenQuestions} non viste</span>
+        <span>{item.correct} corrette ({correctPercent}%)</span>
+        <span>{item.wrong} errori ({wrongPercent}%)</span>
+      </div>
+    </article>
   );
 }
 
