@@ -17,6 +17,7 @@ export async function PATCH(
   const body = (await request.json().catch(() => ({}))) as {
     reviewStatusId?: string;
     reliabilityLevelId?: string;
+    questionText?: string;
     answer?: string;
     explanationShort?: string;
     rationale?: string;
@@ -37,6 +38,9 @@ export async function PATCH(
     publicationStatus?: "unpublished" | "published" | "rejected" | "needs_repair" | "not_recoverable";
     adminNote?: string | null;
   };
+  if (body.questionText !== undefined && !body.questionText.trim()) {
+    return Response.json({ error: "Question text cannot be empty" }, { status: 400 });
+  }
   const question = await updateQuestionReview(id, body, user.email);
   if (!question) {
     return Response.json({ error: "Question not found" }, { status: 404 });

@@ -1,4 +1,5 @@
 import type { SearchDocument, SearchFilters, SearchResponse, SearchResult, SearchStatusFilter } from "@/lib/search/types";
+import { fuzzyFieldScore } from "@/lib/search/fuzzy";
 import { makeSnippet, tokenize, truncateText } from "@/lib/search/normalize";
 
 function matchesStatus(document: SearchDocument, status?: SearchStatusFilter | null) {
@@ -20,6 +21,12 @@ function scoreDocument(document: SearchDocument, tokens: string[]) {
     if (document.haystack.answer.includes(token)) tokenScore += 10;
     if (document.haystack.explanation.includes(token)) tokenScore += 6;
     if (document.haystack.metadata.includes(token)) tokenScore += 4;
+    if (tokenScore === 0) {
+      tokenScore += fuzzyFieldScore(token, document.haystack.question) * 5;
+      tokenScore += fuzzyFieldScore(token, document.haystack.answer) * 4;
+      tokenScore += fuzzyFieldScore(token, document.haystack.explanation) * 2;
+      tokenScore += fuzzyFieldScore(token, document.haystack.metadata) * 2;
+    }
     if (tokenScore > 0) matched += 1;
     score += tokenScore;
   }
@@ -30,11 +37,19 @@ function scoreDocument(document: SearchDocument, tokens: string[]) {
 }
 
 function tagsFor(document: SearchDocument) {
-  const tags = [document.subjectLabel, document.evidenceStatus ?? "no evidence"];
-  if (document.userStats.wrong > 0) tags.push("wrong");
-  if (document.userStats.attempts > 0) tags.push("reviewed");
-  if (document.userStats.attempts === 0) tags.push("unseen");
+  const tags = [document.subjectLabel, evidenceLabel(document.evidenceStatus)];
+  if (document.userStats.wrong > 0) tags.push("Errori");
+  if (document.userStats.attempts > 0) tags.push("Riviste");
+  if (document.userStats.attempts === 0) tags.push("Mai viste");
   return tags;
+}
+
+function evidenceLabel(status: SearchDocument["evidenceStatus"]) {
+  if (status === "supported") return "Supportata";
+  if (status === "externally_supported") return "Fonti esterne";
+  if (status === "partially_supported") return "Parziale";
+  if (status === "conflicting_sources") return "Fonti in conflitto";
+  return "Evidenza insufficiente";
 }
 
 function toResult(document: SearchDocument, score: number, tokens: string[]): SearchResult {
@@ -80,10 +95,10 @@ function buildFacets(documents: SearchDocument[]): SearchResponse["facets"] {
       a.label.localeCompare(b.label),
     ),
     statuses: [
-      { id: "wrong", label: "Wrong", count: statusCounts.get("wrong") ?? 0 },
-      { id: "reviewed", label: "Reviewed", count: statusCounts.get("reviewed") ?? 0 },
-      { id: "unseen", label: "Unseen", count: statusCounts.get("unseen") ?? 0 },
-      { id: "correct", label: "Correct", count: statusCounts.get("correct") ?? 0 },
+      { id: "wrong", label: "Errori", count: statusCounts.get("wrong") ?? 0 },
+      { id: "reviewed", label: "Riviste", count: statusCounts.get("reviewed") ?? 0 },
+      { id: "unseen", label: "Mai viste", count: statusCounts.get("unseen") ?? 0 },
+      { id: "correct", label: "Corrette", count: statusCounts.get("correct") ?? 0 },
     ],
   };
 }

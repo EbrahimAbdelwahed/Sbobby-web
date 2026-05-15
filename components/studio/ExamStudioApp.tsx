@@ -4,6 +4,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { signOut } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 
 import type {
   CardReportReason,
@@ -38,6 +39,7 @@ type QuestionStat = {
   lastRating: Rating | null;
 };
 type ReviewDraft = {
+  questionText?: string;
   answer?: string;
   explanationShort?: string;
   rationale?: string;
@@ -120,6 +122,9 @@ function ratingForMcqOutcome(outcome: McqOutcome): Rating | null {
 }
 
 export function ExamStudioApp() {
+  const searchParams = useSearchParams();
+  const requestedQuestionId = searchParams.get("question");
+  const requestedWrongBefore = searchParams.get("wrongBefore");
   const [user, setUser] = useState<User>(null);
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [topics, setTopics] = useState<TopicWithModule[]>([]);
@@ -139,6 +144,7 @@ export function ExamStudioApp() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
+  const [deepLinkMessage, setDeepLinkMessage] = useState<string | null>(null);
 
   const currentQuestion = questions[currentIndex] ?? null;
   const topicMap = useMemo(() => new Map(topics.map((item) => [item.id, item])), [topics]);
@@ -181,13 +187,21 @@ export function ExamStudioApp() {
 
   async function loadQuestions() {
     const params = new URLSearchParams();
+    if (requestedQuestionId) params.set("question", requestedQuestionId);
     if (subject) params.set("subject", subject);
     for (const topicId of selectedTopicIds) params.append("topic", topicId);
     if (wrongBefore) params.set("wrongBefore", "true");
-    params.set("limit", String(questionLimit));
+    params.set("limit", String(requestedQuestionId ? Math.max(questionLimit, 1) : questionLimit));
     const payload = await jsonFetch<{ questions: QuestionView[] }>(`/api/questions?${params}`);
     setQuestions(payload.questions);
-    setCurrentIndex(0);
+    if (requestedQuestionId) {
+      const requestedIndex = payload.questions.findIndex((question) => question.id === requestedQuestionId);
+      setCurrentIndex(requestedIndex >= 0 ? requestedIndex : 0);
+      setDeepLinkMessage(requestedIndex >= 0 ? null : "La domanda richiesta non e disponibile con i filtri correnti o non e pubblicata.");
+    } else {
+      setCurrentIndex(0);
+      setDeepLinkMessage(null);
+    }
     setShowAnswer(false);
   }
 
@@ -202,13 +216,16 @@ export function ExamStudioApp() {
 
   useEffect(() => {
     void loadBase();
+    if (requestedWrongBefore === "1" || requestedWrongBefore === "true") {
+      setWrongBefore(true);
+    }
   }, []);
 
   useEffect(() => {
     if (!loading) {
       void loadQuestions();
     }
-  }, [loading, subject, selectedTopicIds.join(","), wrongBefore, questionLimit]);
+  }, [loading, subject, selectedTopicIds.join(","), wrongBefore, questionLimit, requestedQuestionId]);
 
   useEffect(() => {
     if (!loading && tab === "stats") {
@@ -340,7 +357,7 @@ export function ExamStudioApp() {
                 data-active={tab === item}
                 onClick={() => setTab(item)}
               >
-                {item === "study" ? "Studio" : "Statistiche"}
+                {item === "study" ? "Studio" : "Revisioni"}
               </button>
             ))}
           </div>
@@ -424,30 +441,49 @@ export function ExamStudioApp() {
 
             <section className="min-h-[540px] min-w-0">
               {questions.length === 0 ? (
-                <EmptyState title="Nessuna card pubblicabile" text="Approva alcune card nella vista Review oppure allarga i filtri." />
+                <EmptyState title="Nessuna domanda pubblicata" text="Approva alcune domande nella revisione admin oppure allarga i filtri." />
               ) : currentQuestion ? (
-                <StudyCard
-                  key={currentQuestion.id}
-                  question={currentQuestion}
-                  index={currentIndex}
-                  total={questions.length}
-                  showAnswer={showAnswer}
-                  onToggleAnswer={() => setShowAnswer((value) => !value)}
-                  onRate={submitRating}
-                />
+                <>
+                  {deepLinkMessage ? <p className="mb-3 text-sm font-medium text-amber-700">{deepLinkMessage}</p> : null}
+                  <StudyCard
+                    key={currentQuestion.id}
+                    question={currentQuestion}
+                    index={currentIndex}
+                    total={questions.length}
+                    showAnswer={showAnswer}
+                    onToggleAnswer={() => setShowAnswer((value) => !value)}
+                    onRate={submitRating}
+                  />
+                </>
               ) : null}
             </section>
           </section>
         ) : null}
 
         {tab === "stats" ? (
-          <section className="grid gap-5 lg:grid-cols-2">
-            <StatsList title="Argomenti problematici" rows={topicStats.map((item) => ({ id: item.id, title: item.title, meta: `${item.moduleTitle} - ${item.wrong}/${item.attempts} errori` }))} />
-            <StatsList title="Domande problematiche" rows={questionStats.map((item) => ({ id: item.id, title: item.questionText, meta: `${item.subject} - ${item.wrong}/${item.attempts} errori` }))} />
+          <section className="space-y-5">
+            <div className="grid gap-3 md:grid-cols-3">
+              <MetricCard label="Domande caricate" value={questions.length} />
+              <MetricCard label="Domande riviste" value={questionStats.filter((item) => item.attempts > 0).length} />
+              <MetricCard label="Errori registrati" value={questionStats.reduce((sum, item) => sum + item.wrong, 0)} />
+            </div>
+            <div className="grid gap-5 lg:grid-cols-2">
+              <StatsList title="Argomenti da rivedere" rows={topicStats.map((item) => ({ id: item.id, title: item.title, meta: `${item.moduleTitle} - ${item.wrong}/${item.attempts} errori` }))} />
+              <StatsList title="Domande con errori" rows={questionStats.map((item) => ({ id: item.id, title: item.questionText, meta: `${item.subject} - ${item.wrong}/${item.attempts} errori` }))} />
+            </div>
           </section>
         ) : null}
       </div>
     </main>
+  );
+}
+
+function MetricCard({ label, value }: { label: string; value: number }) {
+  return (
+    <section className="sb-panel p-4">
+      <p className="text-xs font-semibold uppercase tracking-wide text-[var(--sb-text-dim)]">{label}</p>
+      <p className="mt-2 text-3xl font-bold text-[var(--sb-text)]">{value}</p>
+    </section>
   );
 }
 
@@ -835,7 +871,10 @@ function ReviewCard({
         </div>
       </div>
       <div className="p-4">
-      <h3 className="text-lg font-semibold leading-7 text-[var(--sb-text)]">{question.questionText}</h3>
+      <label className="grid gap-1 text-sm font-semibold text-[#40524d]">
+        Domanda
+        <textarea className="sb-textarea min-h-24" value={draft.questionText} onChange={(event) => onDraft({ questionText: event.target.value })} />
+      </label>
       <div className="mt-4 grid gap-3 lg:grid-cols-2">
         <label className="grid gap-1 text-sm font-semibold text-[#40524d]">
           Risposta
@@ -882,9 +921,9 @@ function ReviewCard({
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
         <button className="sb-button-secondary" disabled={saving} onClick={() => onSave({ needsHumanReview: true })}>Salva</button>
-        <button className="sb-button-secondary" disabled={saving} onClick={() => onSave({ reviewStatusId: "reviewing", reliabilityLevelId: "source_supported", evidenceStatus: "partially_supported", needsHumanReview: true, publicationStatus: "needs_repair" })}>Needs evidence</button>
+        <button className="sb-button-secondary" disabled={saving} onClick={() => onSave({ reviewStatusId: "reviewing", reliabilityLevelId: "source_supported", evidenceStatus: "partially_supported", needsHumanReview: true, publicationStatus: "needs_repair" })}>Richiede evidenza</button>
         <button className="sb-button-secondary" disabled={saving} onClick={() => onSave({ reviewStatusId: "rejected", reliabilityLevelId: "needs_review", needsHumanReview: false, publicationStatus: "rejected" })}>Rifiuta</button>
-        <button className="sb-button-secondary" disabled={saving} onClick={() => onSave({ publicationStatus: "unpublished", needsHumanReview: true })}>Unpublish</button>
+        <button className="sb-button-secondary" disabled={saving} onClick={() => onSave({ publicationStatus: "unpublished", needsHumanReview: true })}>Rimuovi pubblicazione</button>
         <button className="sb-action-primary" disabled={saving} onClick={() => onSave({ reviewStatusId: "approved", reliabilityLevelId: "human_verified", evidenceStatus: "supported", confidence: "1", warnings: "", needsHumanReview: false, publicationStatus: "published" })}>Pubblica</button>
         <select className="sb-input max-w-56" disabled={saving} value={question.reliabilityLevelId} onChange={(event) => onSave({ reliabilityLevelId: event.target.value })}>
           {reliabilityLevels.map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}
@@ -897,6 +936,8 @@ function ReviewCard({
 
 export function AdminReviewApp() {
   const [questions, setQuestions] = useState<QuestionView[]>([]);
+  const [adminMode, setAdminMode] = useState<"queue" | "published" | "unpublished">("queue");
+  const [adminQuery, setAdminQuery] = useState("");
   const [reliabilityLevels, setReliabilityLevels] = useState<ReliabilityLevel[]>([]);
   const [reviewStatuses, setReviewStatuses] = useState<ReviewStatus[]>([]);
   const [reviewDrafts, setReviewDrafts] = useState<Record<string, ReviewDraft>>({});
@@ -906,8 +947,10 @@ export function AdminReviewApp() {
 
   async function loadAdmin() {
     setLoading(true);
+    const params = new URLSearchParams({ mode: adminMode, limit: "100" });
+    if (adminQuery.trim()) params.set("q", adminQuery.trim());
     const [queuePayload, reliabilityPayload, statusesPayload] = await Promise.all([
-      jsonFetch<{ questions: QuestionView[] }>("/api/admin/review-queue"),
+      jsonFetch<{ questions: QuestionView[] }>(`/api/admin/review-queue?${params}`),
       jsonFetch<{ reliabilityLevels: ReliabilityLevel[] }>("/api/reliability-levels"),
       jsonFetch<{ reviewStatuses: ReviewStatus[] }>("/api/review-statuses"),
     ]);
@@ -922,7 +965,7 @@ export function AdminReviewApp() {
       setMessage("Accesso admin richiesto");
       setLoading(false);
     });
-  }, []);
+  }, [adminMode]);
 
   function updateDraft(questionId: string, patch: ReviewDraft) {
     setReviewDrafts((drafts) => ({
@@ -934,6 +977,7 @@ export function AdminReviewApp() {
   function draftFor(question: QuestionView): Required<ReviewDraft> {
     const draft = reviewDrafts[question.id] ?? {};
     return {
+      questionText: draft.questionText ?? question.questionText,
       answer: draft.answer ?? question.explanation?.answer ?? "",
       explanationShort: draft.explanationShort ?? question.explanation?.explanationShort ?? "",
       rationale: draft.rationale ?? question.explanation?.rationale ?? "",
@@ -962,6 +1006,7 @@ export function AdminReviewApp() {
     const nextReliabilityLevel = patch.reliabilityLevelId ? reliabilityLevels.find((item) => item.id === patch.reliabilityLevelId) : undefined;
     const nextQuestion: QuestionView = {
       ...question,
+      questionText: patch.questionText ?? draft.questionText,
       reviewStatusId: patch.reviewStatusId ?? question.reviewStatusId,
       reliabilityLevelId: patch.reliabilityLevelId ?? question.reliabilityLevelId,
       publicationStatus: (patch.publicationStatus ?? question.publicationStatus) as QuestionView["publicationStatus"],
@@ -995,6 +1040,7 @@ export function AdminReviewApp() {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
+        questionText: patch.questionText ?? draft.questionText,
         answer: patch.answer ?? draft.answer,
         explanationShort: patch.explanationShort ?? draft.explanationShort,
         rationale: patch.rationale ?? draft.rationale,
@@ -1033,14 +1079,45 @@ export function AdminReviewApp() {
         <header className="sb-header">
           <div>
             <p className="sb-kicker">Sbobby admin</p>
-            <h1 className="sb-title">Review card</h1>
+            <h1 className="sb-title">Revisione admin</h1>
             <p className="mt-2 text-sm text-[var(--sb-text-dim)]">Stati: {reviewStatuses.map((item) => item.label).join(", ")}</p>
           </div>
           {message ? <p className="text-sm font-medium text-emerald-600">{message}</p> : null}
         </header>
+        <section className="sb-panel p-4">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <span className="sb-label">Vista</span>
+              <div className="sb-filter-segments">
+                {[
+                  ["queue", "Coda review"],
+                  ["published", "Pubblicate"],
+                  ["unpublished", "Non pubblicate"],
+                ].map(([id, label]) => (
+                  <button
+                    className="sb-filter-segment"
+                    data-active={adminMode === id}
+                    key={id}
+                    onClick={() => setAdminMode(id as typeof adminMode)}
+                    type="button"
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <label className="w-full lg:max-w-md">
+              <span className="sb-label">Cerca</span>
+              <div className="flex gap-2">
+                <input className="sb-input" value={adminQuery} onChange={(event) => setAdminQuery(event.target.value)} placeholder="Testo domanda, risposta o spiegazione" />
+                <button className="sb-button-secondary" onClick={() => void loadAdmin()} type="button">Cerca</button>
+              </div>
+            </label>
+          </div>
+        </section>
         {loading ? <p className="text-sm text-[var(--sb-text-dim)]">Caricamento...</p> : (
           <div className="grid gap-4">
-            {questions.map((question) => (
+            {questions.length ? questions.map((question) => (
               <ReviewCard
                 key={question.id}
                 question={question}
@@ -1050,7 +1127,7 @@ export function AdminReviewApp() {
                 onSave={(patch) => updateQuestion(question, patch)}
                 saving={Boolean(savingQuestions[question.id])}
               />
-            ))}
+            )) : <EmptyState title="Nessuna domanda in questa vista" text="Cambia filtro o cerca un altro termine." />}
           </div>
         )}
       </div>

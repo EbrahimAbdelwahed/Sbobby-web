@@ -8,17 +8,23 @@ import { SectionCard } from "@/components/ui/SectionCard";
 import type { SearchResponse, SearchStatusFilter } from "@/lib/search/types";
 
 const statusOptions: Array<{ id: SearchStatusFilter | ""; label: string }> = [
-  { id: "", label: "All" },
-  { id: "wrong", label: "Wrong" },
-  { id: "reviewed", label: "Reviewed" },
-  { id: "unseen", label: "Unseen" },
-  { id: "correct", label: "Correct" },
+  { id: "", label: "Tutte" },
+  { id: "wrong", label: "Errori" },
+  { id: "reviewed", label: "Riviste" },
+  { id: "unseen", label: "Mai viste" },
+  { id: "correct", label: "Corrette" },
 ];
 
-export function SearchPageClient() {
+export function SearchPageClient({
+  initialStatus = "",
+  fixedStatus = false,
+}: {
+  initialStatus?: SearchStatusFilter | "";
+  fixedStatus?: boolean;
+}) {
   const [query, setQuery] = useState("");
   const [subject, setSubject] = useState("");
-  const [status, setStatus] = useState<SearchStatusFilter | "">("");
+  const [status, setStatus] = useState<SearchStatusFilter | "">(initialStatus);
   const [data, setData] = useState<SearchResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,11 +47,11 @@ export function SearchPageClient() {
         const response = await fetch(`/api/search?${searchParams.toString()}`, {
           signal: controller.signal,
         });
-        if (!response.ok) throw new Error(`Search failed with ${response.status}`);
+        if (!response.ok) throw new Error(`Ricerca non riuscita (${response.status})`);
         setData((await response.json()) as SearchResponse);
       } catch (searchError) {
         if (!controller.signal.aborted) {
-          setError(searchError instanceof Error ? searchError.message : "Search failed");
+          setError(searchError instanceof Error ? searchError.message : "Ricerca non riuscita");
         }
       } finally {
         if (!controller.signal.aborted) setLoading(false);
@@ -63,19 +69,19 @@ export function SearchPageClient() {
       <SectionCard>
         <div className="sb-search-controls">
           <label className="sb-search-input-wrap">
-            <span className="sb-label">Search cards</span>
+            <span className="sb-label">Cerca nelle domande</span>
             <input
               className="sb-input sb-search-input"
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search questions, answers, explanations, topics, sources"
+              placeholder="Domande, risposte, spiegazioni, argomenti, fonti"
               type="search"
               value={query}
             />
           </label>
           <label>
-            <span className="sb-label">Subject</span>
+            <span className="sb-label">Materia</span>
             <select className="sb-input" onChange={(event) => setSubject(event.target.value)} value={subject}>
-              <option value="">All subjects</option>
+              <option value="">Tutte le materie</option>
               {data?.facets.subjects.map((item) => (
                 <option key={item.id} value={item.id}>
                   {item.label} ({item.count})
@@ -83,39 +89,45 @@ export function SearchPageClient() {
               ))}
             </select>
           </label>
-          <label>
-            <span className="sb-label">Status</span>
-            <select
-              className="sb-input"
-              onChange={(event) => setStatus(event.target.value as SearchStatusFilter | "")}
-              value={status}
-            >
-              {statusOptions.map((item) => (
-                <option key={item.id || "all"} value={item.id}>
+          <div>
+            <span className="sb-label">Stato</span>
+            <div className="sb-filter-segments" aria-label="Filtro stato">
+              {statusOptions.filter((item) => !fixedStatus || item.id === status).map((item) => (
+                <button
+                  className="sb-filter-segment"
+                  data-active={status === item.id}
+                  disabled={fixedStatus}
+                  key={item.id || "all"}
+                  onClick={() => setStatus(item.id)}
+                  type="button"
+                >
                   {item.label}
-                </option>
+                  {data?.facets.statuses.find((facet) => facet.id === item.id)?.count != null ? (
+                    <span>{data.facets.statuses.find((facet) => facet.id === item.id)?.count}</span>
+                  ) : null}
+                </button>
               ))}
-            </select>
-          </label>
+            </div>
+          </div>
         </div>
       </SectionCard>
 
       {error ? (
-        <EmptyState title="Search is unavailable" description={error} />
+        <EmptyState title="Ricerca non disponibile" description={error} />
       ) : !data && loading ? (
         <SectionCard>
-          <p className="text-sm text-[var(--sb-text-dim)]">Loading search index...</p>
+          <p className="text-sm text-[var(--sb-text-dim)]">Caricamento indice...</p>
         </SectionCard>
       ) : data?.results.length === 0 ? (
         <EmptyState
-          title="No matching cards"
-          description="Try a shorter term, another subject, or a different review status."
+          title="Nessuna domanda trovata"
+          description="Prova un termine piu corto, un'altra materia o uno stato diverso."
         />
       ) : (
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-3 text-sm text-[var(--sb-text-dim)]">
-            <span>{data ? `${data.results.length} result${data.results.length === 1 ? "" : "s"}` : "Ready"}</span>
-            {loading ? <span>Updating...</span> : null}
+            <span>{data ? `${data.results.length} risultati` : "Pronta"}</span>
+            {loading ? <span>Aggiornamento...</span> : null}
           </div>
           {data?.results.map((result) => (
             <article className="sb-search-result" key={result.id}>
@@ -137,12 +149,12 @@ export function SearchPageClient() {
               {result.explanationSnippet ? <p className="sb-search-snippet">{result.explanationSnippet}</p> : null}
               <div className="sb-search-result-footer">
                 <span>
-                  Attempts {result.userStats.attempts} · Wrong {result.userStats.wrong} · Correct{" "}
+                  Tentativi {result.userStats.attempts} · Errori {result.userStats.wrong} · Corrette{" "}
                   {result.userStats.correct}
                 </span>
                 <span>{result.source ?? result.reliabilityLabel}</span>
                 <Link className="sb-button-secondary" href={result.href}>
-                  Open in studio
+                  Apri in Studio
                 </Link>
               </div>
             </article>

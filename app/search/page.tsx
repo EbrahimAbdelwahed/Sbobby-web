@@ -8,9 +8,9 @@ export default function SearchPage() {
     <main className="sb-page">
       <div className="sb-shell">
         <PageHeader
-          kicker="Search"
-          title="Find cards by clinical detail, topic, or answer"
-          description="Search runs against the published Sbobby question set, including answers, explanations, topics, source labels, and your review history."
+          kicker="Cerca"
+          title="Trova domande per dettaglio clinico, argomento o risposta"
+          description="La ricerca lavora sulle domande pubblicate di Sbobby, includendo risposte, spiegazioni, argomenti, fonti e cronologia di revisione."
         />
         <SearchPageClient />
       </div>

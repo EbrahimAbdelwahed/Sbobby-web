@@ -993,6 +993,7 @@ async function getTopicBranchIds(topicOrModuleId: string) {
 
 export async function getQuestions(filters: {
   userId: string;
+  questionId?: string | null;
   subject?: string | null;
   topic?: string | null;
   topics?: string[];
@@ -1005,6 +1006,10 @@ export async function getQuestions(filters: {
   const clauses = ["q.is_active = true"];
   if (!filters.includeReview) {
     clauses.push(...publishedQuestionSql("q", "qe").slice(1));
+  }
+  if (filters.questionId) {
+    params.push(filters.questionId);
+    clauses.push(`q.id = $${params.length}`);
   }
   if (filters.subject) {
     params.push(filters.subject);
@@ -1122,6 +1127,55 @@ export async function getReviewQueue(userId: string): Promise<QuestionView[]> {
     [],
     200,
   );
+  return getQuestionViews(rows, userId);
+}
+
+export async function getAdminQuestionList(
+  userId: string,
+  filters: { mode?: "queue" | "published" | "unpublished"; q?: string | null; limit?: number },
+): Promise<QuestionView[]> {
+  const params: unknown[] = [];
+  const clauses = ["q.is_active = true"];
+  const mode = filters.mode ?? "queue";
+
+  if (mode === "published") {
+    clauses.push("q.publication_status = 'published'");
+  } else if (mode === "unpublished") {
+    clauses.push("q.publication_status <> 'published'");
+  } else {
+    clauses.push(`(
+      EXISTS (
+        SELECT 1 FROM card_reports cr
+        WHERE cr.question_id = q.id AND cr.status IN ('open', 'reviewing')
+      )
+      OR (
+        q.publication_status NOT IN ('published', 'rejected', 'not_recoverable')
+        AND (
+          q.publication_status <> 'published'
+          OR q.review_status_id <> 'approved'
+          OR q.needs_review = true
+          OR EXISTS (
+            SELECT 1 FROM question_explanations qex
+            WHERE qex.question_id = q.id
+              AND ${explanationNeedsReviewSql("qex")}
+          )
+        )
+      )
+    )`);
+  }
+
+  const query = filters.q?.trim();
+  if (query) {
+    params.push(`%${query}%`);
+    clauses.push(`(
+      q.question_text ILIKE $${params.length}
+      OR COALESCE(qe.answer, '') ILIKE $${params.length}
+      OR COALESCE(qe.explanation_short, '') ILIKE $${params.length}
+      OR COALESCE(q.raw_text, '') ILIKE $${params.length}
+    )`);
+  }
+
+  const rows = await questionRows(`WHERE ${clauses.join(" AND ")}`, params, filters.limit ?? 100);
   return getQuestionViews(rows, userId);
 }
 
@@ -1271,6 +1325,7 @@ export async function updateQuestionReview(
   patch: {
     reviewStatusId?: string;
     reliabilityLevelId?: string;
+    questionText?: string;
     answer?: string;
     explanationShort?: string;
     rationale?: string;
@@ -1290,6 +1345,12 @@ export async function updateQuestionReview(
   const rows = (await sql.query("SELECT id FROM questions WHERE id = $1", [questionId])) as Row[];
   if (!rows.length) {
     return null;
+  }
+
+  if (patch.questionText !== undefined) {
+    const questionText = patch.questionText.trim();
+    if (!questionText) throw new Error("Question text cannot be empty");
+    await sql.query("UPDATE questions SET question_text = $2 WHERE id = $1", [questionId, questionText]);
   }
 
   if (patch.reviewStatusId || patch.reliabilityLevelId || patch.publicationStatus || patch.adminNote !== undefined) {

@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
   const topicFilters = getTopicFilters(params);
   const questions = getQuestions({
     userId: user.email,
+    questionId: params.get("question"),
     subject: params.get("subject"),
     topics: topicFilters,
     wrongBefore: asBool(params.get("wrongBefore")),
