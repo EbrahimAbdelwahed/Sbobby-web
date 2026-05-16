@@ -754,6 +754,24 @@ async function getReportCountMap(questionIds: string[]) {
   return new Map(rows.map((row) => [String(row.question_id), Number(row.count)]));
 }
 
+async function getReportsMap(questionIds: string[]) {
+  await ensureDb();
+  if (questionIds.length === 0) return new Map<string, CardReport[]>();
+  const rows = (await sql.query(
+    `SELECT *
+     FROM card_reports
+     WHERE question_id = ANY($1::text[]) AND status IN ('open', 'reviewing')
+     ORDER BY created_at DESC`,
+    [questionIds],
+  )) as Row[];
+  const reports = new Map<string, CardReport[]>();
+  for (const row of rows) {
+    const report = mapCardReport(row);
+    reports.set(report.questionId, [...(reports.get(report.questionId) ?? []), report]);
+  }
+  return reports;
+}
+
 async function getQuestionViews(rows: Row[], userId: string): Promise<QuestionView[]> {
   const questionIds = rows.map((row) => String(row.id));
   const [subjects, topics, reliabilityLevels, reviewStatuses, statsMap, reportCountMap] = await Promise.all([
@@ -797,6 +815,14 @@ async function getQuestionViews(rows: Row[], userId: string): Promise<QuestionVi
       reportCount: reportCountMap.get(question.id) ?? 0,
     };
   });
+}
+
+async function withOpenReports(questions: QuestionView[]): Promise<QuestionView[]> {
+  const reportsMap = await getReportsMap(questions.map((question) => question.id));
+  return questions.map((question) => ({
+    ...question,
+    reports: reportsMap.get(question.id) ?? [],
+  }));
 }
 
 async function getSourceChunkMap(ids: string[]) {
@@ -1176,7 +1202,7 @@ export async function getAdminQuestionList(
   }
 
   const rows = await questionRows(`WHERE ${clauses.join(" AND ")}`, params, filters.limit ?? 100);
-  return getQuestionViews(rows, userId);
+  return withOpenReports(await getQuestionViews(rows, userId));
 }
 
 function mapCardReport(row: Row): CardReport {
@@ -1291,7 +1317,7 @@ export async function getAgentReviewQueue(input: {
     clauses.push(`q.id > $${params.length}`);
   }
   const rows = await questionRows(`WHERE ${clauses.join(" AND ")}`, params, limit);
-  const questions = await getQuestionViews(rows, input.userId);
+  const questions = await withOpenReports(await getQuestionViews(rows, input.userId));
   const reportsByQuestionId: Record<string, CardReport[]> = {};
   await Promise.all(questions.map(async (question) => {
     reportsByQuestionId[question.id] = await listQuestionReports(question.id);
@@ -1446,6 +1472,127 @@ export async function updateQuestionReview(
   const updatedRows = await questionRows("WHERE q.id = $1", [questionId], 1);
   const [view] = await getQuestionViews(updatedRows, userId);
   return view ?? null;
+}
+
+export async function splitQuestionAnswer(
+  questionId: string,
+  input: {
+    currentAnswer: string;
+    newAnswer: string;
+    currentExplanationShort?: string;
+    newExplanationShort?: string;
+    currentRationale?: string;
+    newRationale?: string;
+    questionText?: string;
+  },
+  userId: string,
+): Promise<{ currentQuestion: QuestionView | null; newQuestion: QuestionView | null }> {
+  await ensureDb();
+  const questionRowsForSplit = (await sql.query("SELECT * FROM questions WHERE id = $1", [questionId])) as Row[];
+  const sourceQuestion = questionRowsForSplit[0];
+  if (!sourceQuestion) {
+    return { currentQuestion: null, newQuestion: null };
+  }
+  const explanationRows = (await sql.query("SELECT * FROM question_explanations WHERE question_id = $1", [questionId])) as Row[];
+  const sourceExplanation = explanationRows[0];
+  if (!sourceExplanation) {
+    throw new Error("Question explanation is required for splitting");
+  }
+  const currentAnswer = input.currentAnswer.trim();
+  const newAnswer = input.newAnswer.trim();
+  if (!currentAnswer || !newAnswer) {
+    throw new Error("Both split answers are required");
+  }
+
+  await updateQuestionReview(
+    questionId,
+    {
+      answer: currentAnswer,
+      explanationShort: input.currentExplanationShort?.trim() || undefined,
+      rationale: input.currentRationale?.trim() || undefined,
+      needsHumanReview: true,
+      publicationStatus: "needs_repair",
+      reviewStatusId: "reviewing",
+      reliabilityLevelId: "needs_review",
+    },
+    userId,
+  );
+
+  const newQuestionId = makeId("qsplit");
+  const newExplanationId = makeId("qexsplit");
+  const newQuestionText = input.questionText?.trim() || String(sourceQuestion.question_text);
+  const adminNote = `Split da ${questionId} per risposta accorpata.`;
+
+  await sql.query(
+    `INSERT INTO questions
+     (id, subject, question_type, question_text, source_refs, exam_date, needs_review, raw_text,
+      needs_topic_review, review_status_id, reliability_level_id, publication_status, published_at,
+      published_by, admin_note, is_active)
+     VALUES ($1, $2, $3, $4, $5::jsonb, $6, true, $7, $8, 'reviewing', 'needs_review',
+      'unpublished', NULL, NULL, $9, $10)`,
+    [
+      newQuestionId,
+      sourceQuestion.subject,
+      sourceQuestion.question_type,
+      newQuestionText,
+      JSON.stringify(json<SourceRef[]>(sourceQuestion.source_refs, [])),
+      sourceQuestion.exam_date ?? null,
+      String(sourceQuestion.raw_text ?? sourceQuestion.question_text),
+      Boolean(sourceQuestion.needs_topic_review),
+      adminNote,
+      Boolean(sourceQuestion.is_active),
+    ],
+  );
+
+  const optionRows = (await sql.query(
+    "SELECT label, text FROM question_options WHERE question_id = $1 ORDER BY label",
+    [questionId],
+  )) as Row[];
+  for (const option of optionRows) {
+    await sql.query(
+      "INSERT INTO question_options (id, question_id, label, text) VALUES ($1, $2, $3, $4)",
+      [makeId("opt"), newQuestionId, String(option.label), String(option.text)],
+    );
+  }
+
+  const topicRows = (await sql.query("SELECT topic_id FROM question_topic_map WHERE question_id = $1", [questionId])) as Row[];
+  for (const topic of topicRows) {
+    await sql.query(
+      "INSERT INTO question_topic_map (question_id, topic_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+      [newQuestionId, String(topic.topic_id)],
+    );
+  }
+
+  await sql.query(
+    `INSERT INTO question_explanations
+     (id, question_id, answer, explanation_short, rationale, source_chunk_ids, external_source_urls,
+      external_sources, evidence_status, confidence, warnings, model, needs_human_review)
+     VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb, $8::jsonb, $9, $10, $11::jsonb, $12, true)`,
+    [
+      newExplanationId,
+      newQuestionId,
+      newAnswer,
+      input.newExplanationShort?.trim() || String(sourceExplanation.explanation_short),
+      input.newRationale?.trim() || String(sourceExplanation.rationale),
+      JSON.stringify(json<string[]>(sourceExplanation.source_chunk_ids, [])),
+      JSON.stringify(json<string[]>(sourceExplanation.external_source_urls, [])),
+      JSON.stringify(json<QuestionExplanation["externalSources"]>(sourceExplanation.external_sources, [])),
+      String(sourceExplanation.evidence_status),
+      Math.min(Number(sourceExplanation.confidence), 0.75),
+      JSON.stringify(Array.from(new Set([...json<string[]>(sourceExplanation.warnings, []), "answer_split_needs_review"]))),
+      String(sourceExplanation.model),
+    ],
+  );
+
+  const [currentRows, newRows] = await Promise.all([
+    questionRows("WHERE q.id = $1", [questionId], 1),
+    questionRows("WHERE q.id = $1", [newQuestionId], 1),
+  ]);
+  const [[currentQuestion], [newQuestion]] = await Promise.all([
+    getQuestionViews(currentRows, userId),
+    getQuestionViews(newRows, userId),
+  ]);
+  return { currentQuestion: currentQuestion ?? null, newQuestion: newQuestion ?? null };
 }
 
 function mapSharedSession(row: Row): SharedStudySession {

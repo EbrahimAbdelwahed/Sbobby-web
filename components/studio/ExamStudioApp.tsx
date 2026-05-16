@@ -7,6 +7,7 @@ import { signOut } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 
 import type {
+  CardReport,
   CardReportReason,
   QuestionExplanation,
   QuestionView,
@@ -51,6 +52,13 @@ type ReviewDraft = {
   warnings?: string;
 };
 
+type SplitDraft = {
+  currentAnswer: string;
+  newAnswer: string;
+  newExplanationShort: string;
+  newRationale: string;
+};
+
 const ratings: Array<{ id: Rating; label: string }> = [
   { id: "wrong", label: "Sbagliata" },
   { id: "partial", label: "Parziale" },
@@ -71,6 +79,10 @@ const reportReasons: Array<{ id: CardReportReason; label: string }> = [
   { id: "wrong_answer", label: "Risposta sbagliata o infattuale" },
   { id: "wrong_exam_program", label: "Non appartiene al programma flaggato" },
 ];
+
+function reportReasonLabel(reason: CardReport["reason"]) {
+  return reportReasons.find((item) => item.id === reason)?.label ?? reason;
+}
 
 type McqOutcome = {
   selectedOptionId: string;
@@ -901,6 +913,7 @@ function ReviewCard({
   draft,
   onDraft,
   onSave,
+  onSplit,
   saving,
 }: {
   question: QuestionView;
@@ -908,8 +921,35 @@ function ReviewCard({
   draft: Required<ReviewDraft>;
   onDraft: (patch: ReviewDraft) => void;
   onSave: (patch: Partial<ReviewDraft> & { reviewStatusId?: string; reliabilityLevelId?: string; needsHumanReview?: boolean; publicationStatus?: string }) => void;
+  onSplit: (draft: SplitDraft) => Promise<void>;
   saving?: boolean;
 }) {
+  const [splitOpen, setSplitOpen] = useState(false);
+  const [splitDraft, setSplitDraft] = useState<SplitDraft>({
+    currentAnswer: draft.answer,
+    newAnswer: "",
+    newExplanationShort: "",
+    newRationale: "",
+  });
+  const [splitSaving, setSplitSaving] = useState(false);
+  const reports = question.reports ?? [];
+
+  async function submitSplit() {
+    setSplitSaving(true);
+    try {
+      await onSplit(splitDraft);
+      setSplitOpen(false);
+      setSplitDraft({
+        currentAnswer: splitDraft.currentAnswer,
+        newAnswer: "",
+        newExplanationShort: "",
+        newRationale: "",
+      });
+    } finally {
+      setSplitSaving(false);
+    }
+  }
+
   return (
     <article className={`sb-panel overflow-hidden transition-opacity ${saving ? "opacity-70" : ""}`}>
       <div className="border-b border-[var(--sb-border)] bg-[var(--sb-surface3)] px-4 py-3">
@@ -923,6 +963,29 @@ function ReviewCard({
         </div>
       </div>
       <div className="p-4">
+      {reports.length ? (
+        <details className="mb-4 rounded-lg border border-[#efc0bb] bg-[#fff8f7] p-4" open>
+          <summary className="cursor-pointer text-sm font-bold text-[#8d302c]">
+            {reports.length === 1 ? "1 segnalazione aperta" : `${reports.length} segnalazioni aperte`}
+          </summary>
+          <div className="mt-3 grid gap-3">
+            {reports.map((report) => (
+              <div key={report.id} className="rounded-md border border-[#efc0bb] bg-white p-3 text-sm text-[var(--sb-text)]">
+                <div className="flex flex-wrap items-center gap-2 font-semibold">
+                  <span>{reportReasonLabel(report.reason)}</span>
+                  <span className="text-xs font-medium text-[var(--sb-text-dim)]">
+                    {new Date(report.createdAt).toLocaleString("it-IT", { dateStyle: "short", timeStyle: "short" })}
+                  </span>
+                  <span className="sb-badge border-[#efc0bb] bg-[#fff0ee] text-[#a73732]">{report.status}</span>
+                </div>
+                {report.note ? <p className="mt-2 whitespace-pre-wrap leading-6 text-[var(--sb-text-dim)]">{report.note}</p> : (
+                  <p className="mt-2 text-[var(--sb-text-dim)]">Nessuna nota inserita.</p>
+                )}
+              </div>
+            ))}
+          </div>
+        </details>
+      ) : null}
       <label className="grid gap-1 text-sm font-semibold text-[#40524d]">
         Domanda
         <textarea className="sb-textarea min-h-24" value={draft.questionText} onChange={(event) => onDraft({ questionText: event.target.value })} />
@@ -941,6 +1004,35 @@ function ReviewCard({
         Rationale interno
         <textarea className="sb-textarea min-h-20" value={draft.rationale} onChange={(event) => onDraft({ rationale: event.target.value })} />
       </label>
+      <details className="mt-3 rounded-lg border border-[var(--sb-border)] bg-white p-4" open={splitOpen} onToggle={(event) => setSplitOpen(event.currentTarget.open)}>
+        <summary className="cursor-pointer text-sm font-bold text-[var(--sb-text)]">Split risposta in due card</summary>
+        <div className="mt-3 grid gap-3 lg:grid-cols-2">
+          <label className="grid gap-1 text-sm font-semibold text-[#40524d]">
+            Risposta da mantenere in questa card
+            <textarea className="sb-textarea min-h-24" value={splitDraft.currentAnswer} onChange={(event) => setSplitDraft((item) => ({ ...item, currentAnswer: event.target.value }))} />
+          </label>
+          <label className="grid gap-1 text-sm font-semibold text-[#40524d]">
+            Nuova risposta da creare
+            <textarea className="sb-textarea min-h-24" value={splitDraft.newAnswer} onChange={(event) => setSplitDraft((item) => ({ ...item, newAnswer: event.target.value }))} />
+          </label>
+          <label className="grid gap-1 text-sm font-semibold text-[#40524d]">
+            Spiegazione nuova card
+            <textarea className="sb-textarea min-h-20" value={splitDraft.newExplanationShort} onChange={(event) => setSplitDraft((item) => ({ ...item, newExplanationShort: event.target.value }))} placeholder="Se vuota, usa la spiegazione attuale come base" />
+          </label>
+          <label className="grid gap-1 text-sm font-semibold text-[#40524d]">
+            Rationale nuova card
+            <textarea className="sb-textarea min-h-20" value={splitDraft.newRationale} onChange={(event) => setSplitDraft((item) => ({ ...item, newRationale: event.target.value }))} placeholder="Se vuoto, usa il rationale attuale come base" />
+          </label>
+        </div>
+        <button
+          className="sb-button-secondary mt-3"
+          disabled={saving || splitSaving || !splitDraft.currentAnswer.trim() || !splitDraft.newAnswer.trim()}
+          onClick={submitSplit}
+          type="button"
+        >
+          {splitSaving ? "Split in corso..." : "Crea seconda card"}
+        </button>
+      </details>
       <div className="mt-3 grid gap-3 md:grid-cols-3">
         <label className="grid gap-1 text-sm font-semibold text-[#40524d]">
           Evidenza
@@ -1125,6 +1217,46 @@ export function AdminReviewApp() {
     }
   }
 
+  async function splitAnswer(question: QuestionView, splitDraft: SplitDraft) {
+    const draft = draftFor(question);
+    setSavingQuestions((items) => ({ ...items, [question.id]: true }));
+    setMessage("Split della risposta in corso...");
+    try {
+      const result = await jsonFetch<{ currentQuestion: QuestionView; newQuestion: QuestionView }>(`/api/admin/questions/${question.id}/split-answer`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentAnswer: splitDraft.currentAnswer,
+          newAnswer: splitDraft.newAnswer,
+          currentExplanationShort: draft.explanationShort,
+          currentRationale: draft.rationale,
+          newExplanationShort: splitDraft.newExplanationShort,
+          newRationale: splitDraft.newRationale,
+          questionText: draft.questionText,
+        }),
+      });
+      setQuestions((items) => {
+        const withoutNew = items.filter((item) => item.id !== result.newQuestion.id);
+        return withoutNew.flatMap((item) => item.id === question.id ? [result.currentQuestion, result.newQuestion] : [item]);
+      });
+      setReviewDrafts((drafts) => {
+        const nextDrafts = { ...drafts };
+        delete nextDrafts[question.id];
+        return nextDrafts;
+      });
+      setMessage("Risposta splittata: la seconda card è stata creata in revisione.");
+    } catch (error) {
+      setMessage(error instanceof Error ? `Errore split: ${error.message}` : "Errore split");
+      throw error;
+    } finally {
+      setSavingQuestions((items) => {
+        const nextItems = { ...items };
+        delete nextItems[question.id];
+        return nextItems;
+      });
+    }
+  }
+
   return (
     <main className="sb-page">
       <div className="sb-shell">
@@ -1177,6 +1309,7 @@ export function AdminReviewApp() {
                 draft={draftFor(question)}
                 onDraft={(patch) => updateDraft(question.id, patch)}
                 onSave={(patch) => updateQuestion(question, patch)}
+                onSplit={(splitDraft) => splitAnswer(question, splitDraft)}
                 saving={Boolean(savingQuestions[question.id])}
               />
             )) : <EmptyState title="Nessuna domanda in questa vista" text="Cambia filtro o cerca un altro termine." />}

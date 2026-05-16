@@ -297,4 +297,5 @@ export interface QuestionView extends Question {
     lastRating: Rating | null;
   };
   reportCount?: number;
+  reports?: CardReport[];
 }
