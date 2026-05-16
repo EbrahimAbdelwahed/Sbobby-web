@@ -10,6 +10,7 @@ import type {
   CardReport,
   CardReportReason,
   QuestionExplanation,
+  QuestionOption,
   QuestionView,
   Rating,
   ReliabilityLevel,
@@ -44,6 +45,7 @@ type QuestionStat = {
 };
 type ReviewDraft = {
   questionText?: string;
+  options?: AdminOptionDraft[];
   answer?: string;
   explanationShort?: string;
   rationale?: string;
@@ -52,11 +54,8 @@ type ReviewDraft = {
   warnings?: string;
 };
 
-type SplitDraft = {
-  currentAnswer: string;
-  newAnswer: string;
-  newExplanationShort: string;
-  newRationale: string;
+type AdminOptionDraft = Pick<QuestionOption, "id" | "label" | "text"> & {
+  isNew?: boolean;
 };
 
 const ratings: Array<{ id: Rating; label: string }> = [
@@ -913,7 +912,6 @@ function ReviewCard({
   draft,
   onDraft,
   onSave,
-  onSplit,
   saving,
 }: {
   question: QuestionView;
@@ -921,33 +919,32 @@ function ReviewCard({
   draft: Required<ReviewDraft>;
   onDraft: (patch: ReviewDraft) => void;
   onSave: (patch: Partial<ReviewDraft> & { reviewStatusId?: string; reliabilityLevelId?: string; needsHumanReview?: boolean; publicationStatus?: string }) => void;
-  onSplit: (draft: SplitDraft) => Promise<void>;
   saving?: boolean;
 }) {
-  const [splitOpen, setSplitOpen] = useState(false);
-  const [splitDraft, setSplitDraft] = useState<SplitDraft>({
-    currentAnswer: draft.answer,
-    newAnswer: "",
-    newExplanationShort: "",
-    newRationale: "",
-  });
-  const [splitSaving, setSplitSaving] = useState(false);
   const reports = question.reports ?? [];
 
-  async function submitSplit() {
-    setSplitSaving(true);
-    try {
-      await onSplit(splitDraft);
-      setSplitOpen(false);
-      setSplitDraft({
-        currentAnswer: splitDraft.currentAnswer,
-        newAnswer: "",
-        newExplanationShort: "",
-        newRationale: "",
-      });
-    } finally {
-      setSplitSaving(false);
-    }
+  function updateOption(index: number, patch: Partial<AdminOptionDraft>) {
+    onDraft({
+      options: draft.options.map((option, optionIndex) => (
+        optionIndex === index ? { ...option, ...patch } : option
+      )),
+    });
+  }
+
+  function addOption() {
+    const existingLabels = new Set(draft.options.map((option) => option.label.trim().toUpperCase()).filter(Boolean));
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const nextLabel = alphabet.split("").find((label) => !existingLabels.has(label)) ?? String(draft.options.length + 1);
+    onDraft({
+      options: [
+        ...draft.options,
+        { id: `new_${Date.now().toString(36)}`, label: nextLabel, text: "", isNew: true },
+      ],
+    });
+  }
+
+  function removeOption(index: number) {
+    onDraft({ options: draft.options.filter((_, optionIndex) => optionIndex !== index) });
   }
 
   return (
@@ -990,6 +987,31 @@ function ReviewCard({
         Domanda
         <textarea className="sb-textarea min-h-24" value={draft.questionText} onChange={(event) => onDraft({ questionText: event.target.value })} />
       </label>
+      {question.questionType === "multiple_choice" ? (
+        <section className="mt-4 grid gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-sm font-bold text-[#40524d]">Opzioni risposta</h3>
+            <button className="sb-button-secondary" disabled={saving} onClick={addOption} type="button">Aggiungi opzione</button>
+          </div>
+          <div className="grid gap-2">
+            {draft.options.map((option, index) => (
+              <div key={option.id} className="grid gap-2 rounded-lg border border-[var(--sb-border)] bg-white p-3 md:grid-cols-[88px_1fr_auto] md:items-start">
+                <label className="grid gap-1 text-xs font-semibold text-[#40524d]">
+                  Label
+                  <input className="sb-input" value={option.label} onChange={(event) => updateOption(index, { label: event.target.value })} />
+                </label>
+                <label className="grid gap-1 text-xs font-semibold text-[#40524d]">
+                  Testo opzione
+                  <textarea className="sb-textarea min-h-16" value={option.text} onChange={(event) => updateOption(index, { text: event.target.value })} />
+                </label>
+                <button className="sb-button-secondary md:mt-5" disabled={saving || draft.options.length <= 2} onClick={() => removeOption(index)} type="button">
+                  Rimuovi
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
       <div className="mt-4 grid gap-3 lg:grid-cols-2">
         <label className="grid gap-1 text-sm font-semibold text-[#40524d]">
           Risposta
@@ -1004,35 +1026,6 @@ function ReviewCard({
         Rationale interno
         <textarea className="sb-textarea min-h-20" value={draft.rationale} onChange={(event) => onDraft({ rationale: event.target.value })} />
       </label>
-      <details className="mt-3 rounded-lg border border-[var(--sb-border)] bg-white p-4" open={splitOpen} onToggle={(event) => setSplitOpen(event.currentTarget.open)}>
-        <summary className="cursor-pointer text-sm font-bold text-[var(--sb-text)]">Split risposta in due card</summary>
-        <div className="mt-3 grid gap-3 lg:grid-cols-2">
-          <label className="grid gap-1 text-sm font-semibold text-[#40524d]">
-            Risposta da mantenere in questa card
-            <textarea className="sb-textarea min-h-24" value={splitDraft.currentAnswer} onChange={(event) => setSplitDraft((item) => ({ ...item, currentAnswer: event.target.value }))} />
-          </label>
-          <label className="grid gap-1 text-sm font-semibold text-[#40524d]">
-            Nuova risposta da creare
-            <textarea className="sb-textarea min-h-24" value={splitDraft.newAnswer} onChange={(event) => setSplitDraft((item) => ({ ...item, newAnswer: event.target.value }))} />
-          </label>
-          <label className="grid gap-1 text-sm font-semibold text-[#40524d]">
-            Spiegazione nuova card
-            <textarea className="sb-textarea min-h-20" value={splitDraft.newExplanationShort} onChange={(event) => setSplitDraft((item) => ({ ...item, newExplanationShort: event.target.value }))} placeholder="Se vuota, usa la spiegazione attuale come base" />
-          </label>
-          <label className="grid gap-1 text-sm font-semibold text-[#40524d]">
-            Rationale nuova card
-            <textarea className="sb-textarea min-h-20" value={splitDraft.newRationale} onChange={(event) => setSplitDraft((item) => ({ ...item, newRationale: event.target.value }))} placeholder="Se vuoto, usa il rationale attuale come base" />
-          </label>
-        </div>
-        <button
-          className="sb-button-secondary mt-3"
-          disabled={saving || splitSaving || !splitDraft.currentAnswer.trim() || !splitDraft.newAnswer.trim()}
-          onClick={submitSplit}
-          type="button"
-        >
-          {splitSaving ? "Split in corso..." : "Crea seconda card"}
-        </button>
-      </details>
       <div className="mt-3 grid gap-3 md:grid-cols-3">
         <label className="grid gap-1 text-sm font-semibold text-[#40524d]">
           Evidenza
@@ -1122,6 +1115,11 @@ export function AdminReviewApp() {
     const draft = reviewDrafts[question.id] ?? {};
     return {
       questionText: draft.questionText ?? question.questionText,
+      options: draft.options ?? question.options.map((option) => ({
+        id: option.id,
+        label: option.label,
+        text: option.text,
+      })),
       answer: draft.answer ?? question.explanation?.answer ?? "",
       explanationShort: draft.explanationShort ?? question.explanation?.explanationShort ?? "",
       rationale: draft.rationale ?? question.explanation?.rationale ?? "",
@@ -1151,6 +1149,12 @@ export function AdminReviewApp() {
     const nextQuestion: QuestionView = {
       ...question,
       questionText: patch.questionText ?? draft.questionText,
+      options: (patch.options ?? draft.options).map((option) => ({
+        id: option.id,
+        questionId: question.id,
+        label: option.label.trim(),
+        text: option.text.trim(),
+      })),
       reviewStatusId: patch.reviewStatusId ?? question.reviewStatusId,
       reliabilityLevelId: patch.reliabilityLevelId ?? question.reliabilityLevelId,
       publicationStatus: (patch.publicationStatus ?? question.publicationStatus) as QuestionView["publicationStatus"],
@@ -1185,6 +1189,13 @@ export function AdminReviewApp() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         questionText: patch.questionText ?? draft.questionText,
+        ...(question.questionType === "multiple_choice" ? {
+          options: (patch.options ?? draft.options).map((option) => ({
+            id: option.isNew ? undefined : option.id,
+            label: option.label,
+            text: option.text,
+          })),
+        } : {}),
         answer: patch.answer ?? draft.answer,
         explanationShort: patch.explanationShort ?? draft.explanationShort,
         rationale: patch.rationale ?? draft.rationale,
@@ -1208,46 +1219,6 @@ export function AdminReviewApp() {
         return nextItems;
       });
       setMessage(error instanceof Error ? `Errore salvataggio: ${error.message}` : "Errore salvataggio");
-    } finally {
-      setSavingQuestions((items) => {
-        const nextItems = { ...items };
-        delete nextItems[question.id];
-        return nextItems;
-      });
-    }
-  }
-
-  async function splitAnswer(question: QuestionView, splitDraft: SplitDraft) {
-    const draft = draftFor(question);
-    setSavingQuestions((items) => ({ ...items, [question.id]: true }));
-    setMessage("Split della risposta in corso...");
-    try {
-      const result = await jsonFetch<{ currentQuestion: QuestionView; newQuestion: QuestionView }>(`/api/admin/questions/${question.id}/split-answer`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          currentAnswer: splitDraft.currentAnswer,
-          newAnswer: splitDraft.newAnswer,
-          currentExplanationShort: draft.explanationShort,
-          currentRationale: draft.rationale,
-          newExplanationShort: splitDraft.newExplanationShort,
-          newRationale: splitDraft.newRationale,
-          questionText: draft.questionText,
-        }),
-      });
-      setQuestions((items) => {
-        const withoutNew = items.filter((item) => item.id !== result.newQuestion.id);
-        return withoutNew.flatMap((item) => item.id === question.id ? [result.currentQuestion, result.newQuestion] : [item]);
-      });
-      setReviewDrafts((drafts) => {
-        const nextDrafts = { ...drafts };
-        delete nextDrafts[question.id];
-        return nextDrafts;
-      });
-      setMessage("Risposta splittata: la seconda card è stata creata in revisione.");
-    } catch (error) {
-      setMessage(error instanceof Error ? `Errore split: ${error.message}` : "Errore split");
-      throw error;
     } finally {
       setSavingQuestions((items) => {
         const nextItems = { ...items };
@@ -1309,7 +1280,6 @@ export function AdminReviewApp() {
                 draft={draftFor(question)}
                 onDraft={(patch) => updateDraft(question.id, patch)}
                 onSave={(patch) => updateQuestion(question, patch)}
-                onSplit={(splitDraft) => splitAnswer(question, splitDraft)}
                 saving={Boolean(savingQuestions[question.id])}
               />
             )) : <EmptyState title="Nessuna domanda in questa vista" text="Cambia filtro o cerca un altro termine." />}

@@ -18,6 +18,7 @@ export async function PATCH(
     reviewStatusId?: string;
     reliabilityLevelId?: string;
     questionText?: string;
+    options?: Array<{ id?: string; label?: string; text?: string }>;
     answer?: string;
     explanationShort?: string;
     rationale?: string;
@@ -40,6 +41,22 @@ export async function PATCH(
   };
   if (body.questionText !== undefined && !body.questionText.trim()) {
     return Response.json({ error: "Question text cannot be empty" }, { status: 400 });
+  }
+  if (body.options !== undefined) {
+    if (!Array.isArray(body.options) || body.options.length < 2) {
+      return Response.json({ error: "At least two options are required" }, { status: 400 });
+    }
+    const labels = new Set<string>();
+    for (const option of body.options) {
+      const label = option.label?.trim().toUpperCase();
+      if (!label || !option.text?.trim()) {
+        return Response.json({ error: "Option label and text are required" }, { status: 400 });
+      }
+      if (labels.has(label)) {
+        return Response.json({ error: "Option labels must be unique" }, { status: 400 });
+      }
+      labels.add(label);
+    }
   }
   const question = await updateQuestionReview(id, body, user.email);
   if (!question) {
