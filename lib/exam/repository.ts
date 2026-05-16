@@ -1510,6 +1510,20 @@ export async function updateQuestionReview(
     );
   }
 
+  if (patch.publicationStatus === "published") {
+    await updateQuestionReportsForReview({
+      questionId,
+      status: "resolved",
+      resolvedBy: userId,
+    });
+  } else if (patch.publicationStatus === "rejected" || patch.publicationStatus === "not_recoverable") {
+    await updateQuestionReportsForReview({
+      questionId,
+      status: "dismissed",
+      resolvedBy: userId,
+    });
+  }
+
   const updatedRows = await questionRows("WHERE q.id = $1", [questionId], 1);
   const [view] = await getQuestionViews(updatedRows, userId);
   return view ?? null;
