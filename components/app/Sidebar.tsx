@@ -7,7 +7,7 @@ const navItems = [
   { href: "/studio", label: "Studio", icon: "study" },
   { href: "/search", label: "Cerca", icon: "search" },
   { href: "/mistakes", label: "Errori", icon: "errors" },
-  { href: "/admin/review", label: "Revisione admin", icon: "admin" },
+  { href: "/admin/review", label: "Revisione admin", icon: "admin", adminOnly: true },
 ];
 
 function isActive(pathname: string, href: string) {
@@ -18,9 +18,11 @@ function isActive(pathname: string, href: string) {
 
 export function Sidebar({
   collapsed,
+  isAdmin,
   onCollapsedChange,
 }: {
   collapsed: boolean;
+  isAdmin: boolean;
   onCollapsedChange: (collapsed: boolean) => void;
 }) {
   const pathname = usePathname();
@@ -46,7 +48,7 @@ export function Sidebar({
         </button>
       </div>
       <nav className="sb-sidebar-nav">
-        {navItems.map((item) => {
+        {navItems.filter((item) => !item.adminOnly || isAdmin).map((item) => {
           const active = isActive(pathname, item.href);
           return (
             <Link

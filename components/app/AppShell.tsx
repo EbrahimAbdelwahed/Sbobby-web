@@ -11,6 +11,7 @@ const plainShellRoutes = ["/login", "/onboarding"];
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const plain = plainShellRoutes.some((route) => pathname === route || pathname.startsWith(`${route}/`));
 
   useEffect(() => {
@@ -18,6 +19,21 @@ export function AppShell({ children }: { children: ReactNode }) {
     window.queueMicrotask(() => {
       if (active) setSidebarCollapsed(window.localStorage.getItem("sb-sidebar-collapsed") === "1");
     });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/auth/me")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: { isAdmin?: boolean } | null) => {
+        if (active) setIsAdmin(Boolean(payload?.isAdmin));
+      })
+      .catch(() => {
+        if (active) setIsAdmin(false);
+      });
     return () => {
       active = false;
     };
@@ -34,7 +50,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="sb-app-shell" data-sidebar-collapsed={sidebarCollapsed}>
-      <Sidebar collapsed={sidebarCollapsed} onCollapsedChange={updateSidebarCollapsed} />
+      <Sidebar collapsed={sidebarCollapsed} isAdmin={isAdmin} onCollapsedChange={updateSidebarCollapsed} />
       <div className="sb-app-main">{children}</div>
     </div>
   );
