@@ -18,6 +18,8 @@ export async function PATCH(
     reviewStatusId?: string;
     reliabilityLevelId?: string;
     questionText?: string;
+    questionType?: "multiple_choice" | "open";
+    topicIds?: string[];
     options?: Array<{ id?: string; label?: string; text?: string }>;
     answer?: string;
     explanationShort?: string;
@@ -42,12 +44,24 @@ export async function PATCH(
   if (body.questionText !== undefined && !body.questionText.trim()) {
     return Response.json({ error: "Question text cannot be empty" }, { status: 400 });
   }
-  if (body.options !== undefined) {
-    if (!Array.isArray(body.options) || body.options.length < 2) {
+  if (body.questionType !== undefined && body.questionType !== "multiple_choice" && body.questionType !== "open") {
+    return Response.json({ error: "Invalid question type" }, { status: 400 });
+  }
+  if (body.topicIds !== undefined) {
+    if (!Array.isArray(body.topicIds) || body.topicIds.some((topicId) => typeof topicId !== "string" || !topicId.trim())) {
+      return Response.json({ error: "Invalid topic ids" }, { status: 400 });
+    }
+  }
+  if (body.options !== undefined || body.questionType === "multiple_choice") {
+    const options = body.options;
+    if (body.questionType === "multiple_choice" && options === undefined) {
+      return Response.json({ error: "MCQ options are required" }, { status: 400 });
+    }
+    if (!Array.isArray(options) || options.length < 2) {
       return Response.json({ error: "At least two options are required" }, { status: 400 });
     }
     const labels = new Set<string>();
-    for (const option of body.options) {
+    for (const option of options) {
       const label = option.label?.trim().toUpperCase();
       if (!label || !option.text?.trim()) {
         return Response.json({ error: "Option label and text are required" }, { status: 400 });

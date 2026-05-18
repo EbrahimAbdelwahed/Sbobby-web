@@ -1353,6 +1353,8 @@ export async function updateQuestionReview(
     reviewStatusId?: string;
     reliabilityLevelId?: string;
     questionText?: string;
+    questionType?: "multiple_choice" | "open";
+    topicIds?: string[];
     options?: Array<{ id?: string; label?: string; text?: string }>;
     answer?: string;
     explanationShort?: string;
@@ -1379,6 +1381,37 @@ export async function updateQuestionReview(
     const questionText = patch.questionText.trim();
     if (!questionText) throw new Error("Question text cannot be empty");
     await sql.query("UPDATE questions SET question_text = $2 WHERE id = $1", [questionId, questionText]);
+  }
+
+  if (patch.questionType !== undefined) {
+    if (patch.questionType !== "multiple_choice" && patch.questionType !== "open") {
+      throw new Error("Invalid question type");
+    }
+    await sql.query("UPDATE questions SET question_type = $2 WHERE id = $1", [questionId, patch.questionType]);
+    if (patch.questionType === "open") {
+      await sql.query("DELETE FROM question_options WHERE question_id = $1", [questionId]);
+    }
+  }
+
+  if (patch.topicIds !== undefined) {
+    const topicIds = Array.from(new Set(patch.topicIds.map((topicId) => topicId.trim()).filter(Boolean)));
+    if (topicIds.length === 0) {
+      throw new Error("At least one topic is required");
+    }
+    const topicRows = (await sql.query(
+      "SELECT id FROM topics WHERE id = ANY($1::text[])",
+      [topicIds],
+    )) as Row[];
+    if (topicRows.length !== topicIds.length) {
+      throw new Error("One or more topics do not exist");
+    }
+    await sql.query("DELETE FROM question_topic_map WHERE question_id = $1", [questionId]);
+    await sql.query(
+      `INSERT INTO question_topic_map (question_id, topic_id)
+       SELECT $1, unnest($2::text[])`,
+      [questionId, topicIds],
+    );
+    await sql.query("UPDATE questions SET needs_topic_review = false WHERE id = $1", [questionId]);
   }
 
   if (patch.options !== undefined) {

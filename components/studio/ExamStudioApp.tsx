@@ -45,6 +45,8 @@ type QuestionStat = {
 };
 type ReviewDraft = {
   questionText?: string;
+  questionType?: QuestionView["questionType"];
+  topicIds?: string[];
   options?: AdminOptionDraft[];
   answer?: string;
   explanationShort?: string;
@@ -909,6 +911,7 @@ function CardReportForm({ questionId }: { questionId: string }) {
 function ReviewCard({
   question,
   reliabilityLevels,
+  topics,
   draft,
   onDraft,
   onSave,
@@ -916,12 +919,15 @@ function ReviewCard({
 }: {
   question: QuestionView;
   reliabilityLevels: ReliabilityLevel[];
+  topics: TopicWithModule[];
   draft: Required<ReviewDraft>;
   onDraft: (patch: ReviewDraft) => void;
   onSave: (patch: Partial<ReviewDraft> & { reviewStatusId?: string; reliabilityLevelId?: string; needsHumanReview?: boolean; publicationStatus?: string }) => void;
   saving?: boolean;
 }) {
   const reports = question.reports ?? [];
+  const topicOptions = topics.filter((topic) => topic.subject === question.subject);
+  const selectedTopicSet = new Set(draft.topicIds);
 
   function updateOption(index: number, patch: Partial<AdminOptionDraft>) {
     onDraft({
@@ -945,6 +951,30 @@ function ReviewCard({
 
   function removeOption(index: number) {
     onDraft({ options: draft.options.filter((_, optionIndex) => optionIndex !== index) });
+  }
+
+  function updateQuestionType(questionType: QuestionView["questionType"]) {
+    if (questionType === "multiple_choice" && draft.options.length === 0) {
+      onDraft({
+        questionType,
+        options: [
+          { id: `new_${Date.now().toString(36)}_a`, label: "A", text: "", isNew: true },
+          { id: `new_${Date.now().toString(36)}_b`, label: "B", text: "", isNew: true },
+        ],
+      });
+      return;
+    }
+    onDraft({ questionType });
+  }
+
+  function toggleTopic(topicId: string) {
+    const next = new Set(draft.topicIds);
+    if (next.has(topicId)) {
+      next.delete(topicId);
+    } else {
+      next.add(topicId);
+    }
+    onDraft({ topicIds: Array.from(next) });
   }
 
   return (
@@ -987,7 +1017,42 @@ function ReviewCard({
         Domanda
         <textarea className="sb-textarea min-h-24" value={draft.questionText} onChange={(event) => onDraft({ questionText: event.target.value })} />
       </label>
-      {question.questionType === "multiple_choice" ? (
+      <div className="mt-4 grid gap-3 lg:grid-cols-[240px_1fr]">
+        <label className="grid gap-1 text-sm font-semibold text-[#40524d]">
+          Tipo domanda
+          <select
+            className="sb-input"
+            value={draft.questionType}
+            onChange={(event) => updateQuestionType(event.target.value as QuestionView["questionType"])}
+          >
+            <option value="open">Aperta</option>
+            <option value="multiple_choice">MCQ</option>
+          </select>
+        </label>
+        <div className="grid gap-1 text-sm font-semibold text-[#40524d]">
+          Topic assegnati
+          <div className="max-h-44 overflow-auto rounded-lg border border-[var(--sb-border)] bg-white p-2">
+            {topicOptions.length ? topicOptions.map((topic) => (
+              <label key={topic.id} className="flex cursor-pointer items-start gap-2 rounded-md px-2 py-1.5 text-sm font-medium text-[var(--sb-text)] hover:bg-[var(--sb-surface3)]">
+                <input
+                  checked={selectedTopicSet.has(topic.id)}
+                  className="mt-1"
+                  disabled={saving}
+                  onChange={() => toggleTopic(topic.id)}
+                  type="checkbox"
+                />
+                <span>
+                  <span className="font-semibold">{topic.title}</span>
+                  <span className="ml-2 text-xs text-[var(--sb-text-dim)]">{topic.moduleTitle}</span>
+                </span>
+              </label>
+            )) : (
+              <p className="px-2 py-1.5 text-sm font-medium text-[var(--sb-text-dim)]">Nessun topic disponibile per questa materia.</p>
+            )}
+          </div>
+        </div>
+      </div>
+      {draft.questionType === "multiple_choice" ? (
         <section className="mt-4 grid gap-2">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="text-sm font-bold text-[#40524d]">Opzioni risposta</h3>
@@ -1075,6 +1140,7 @@ export function AdminReviewApp() {
   const [questions, setQuestions] = useState<QuestionView[]>([]);
   const [adminMode, setAdminMode] = useState<"queue" | "published" | "unpublished">("queue");
   const [adminQuery, setAdminQuery] = useState("");
+  const [topics, setTopics] = useState<TopicWithModule[]>([]);
   const [reliabilityLevels, setReliabilityLevels] = useState<ReliabilityLevel[]>([]);
   const [reviewStatuses, setReviewStatuses] = useState<ReviewStatus[]>([]);
   const [reviewDrafts, setReviewDrafts] = useState<Record<string, ReviewDraft>>({});
@@ -1086,12 +1152,14 @@ export function AdminReviewApp() {
     setLoading(true);
     const params = new URLSearchParams({ mode: adminMode, limit: "100" });
     if (adminQuery.trim()) params.set("q", adminQuery.trim());
-    const [queuePayload, reliabilityPayload, statusesPayload] = await Promise.all([
+    const [queuePayload, topicsPayload, reliabilityPayload, statusesPayload] = await Promise.all([
       jsonFetch<{ questions: QuestionView[] }>(`/api/admin/review-queue?${params}`),
+      jsonFetch<{ topics: TopicWithModule[] }>("/api/topics"),
       jsonFetch<{ reliabilityLevels: ReliabilityLevel[] }>("/api/reliability-levels"),
       jsonFetch<{ reviewStatuses: ReviewStatus[] }>("/api/review-statuses"),
     ]);
     setQuestions(queuePayload.questions);
+    setTopics(topicsPayload.topics ?? []);
     setReliabilityLevels(reliabilityPayload.reliabilityLevels);
     setReviewStatuses(statusesPayload.reviewStatuses);
     setLoading(false);
@@ -1115,6 +1183,8 @@ export function AdminReviewApp() {
     const draft = reviewDrafts[question.id] ?? {};
     return {
       questionText: draft.questionText ?? question.questionText,
+      questionType: draft.questionType ?? question.questionType,
+      topicIds: draft.topicIds ?? question.topicIds,
       options: draft.options ?? question.options.map((option) => ({
         id: option.id,
         label: option.label,
@@ -1146,10 +1216,16 @@ export function AdminReviewApp() {
     const removesFromActiveQueue = patch.publicationStatus === "published" || patch.publicationStatus === "rejected" || patch.publicationStatus === "not_recoverable";
     const nextReviewStatus = patch.reviewStatusId ? reviewStatuses.find((item) => item.id === patch.reviewStatusId) : undefined;
     const nextReliabilityLevel = patch.reliabilityLevelId ? reliabilityLevels.find((item) => item.id === patch.reliabilityLevelId) : undefined;
+    const nextQuestionType = patch.questionType ?? draft.questionType;
     const nextQuestion: QuestionView = {
       ...question,
       questionText: patch.questionText ?? draft.questionText,
-      options: (patch.options ?? draft.options).map((option) => ({
+      questionType: nextQuestionType,
+      topicIds: patch.topicIds ?? draft.topicIds,
+      topics: (patch.topicIds ?? draft.topicIds)
+        .map((topicId) => topics.find((topic) => topic.id === topicId))
+        .filter((topic): topic is TopicWithModule => Boolean(topic)),
+      options: nextQuestionType === "open" ? [] : (patch.options ?? draft.options).map((option) => ({
         id: option.id,
         questionId: question.id,
         label: option.label.trim(),
@@ -1189,7 +1265,9 @@ export function AdminReviewApp() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         questionText: patch.questionText ?? draft.questionText,
-        ...(question.questionType === "multiple_choice" ? {
+        questionType: patch.questionType ?? draft.questionType,
+        topicIds: patch.topicIds ?? draft.topicIds,
+        ...((patch.questionType ?? draft.questionType) === "multiple_choice" ? {
           options: (patch.options ?? draft.options).map((option) => ({
             id: option.isNew ? undefined : option.id,
             label: option.label,
@@ -1277,6 +1355,7 @@ export function AdminReviewApp() {
                 key={question.id}
                 question={question}
                 reliabilityLevels={reliabilityLevels}
+                topics={topics}
                 draft={draftFor(question)}
                 onDraft={(patch) => updateDraft(question.id, patch)}
                 onSave={(patch) => updateQuestion(question, patch)}
