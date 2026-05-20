@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 
 import { Sidebar } from "@/components/app/Sidebar";
 
-const plainShellRoutes = ["/login", "/onboarding"];
+const plainShellRoutes = ["/login", "/onboarding", "/mobile-study"];
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
