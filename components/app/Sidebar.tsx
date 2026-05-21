@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const navItems = [
   { href: "/studio", label: "Studio", icon: "study" },
+  { href: "/mobile-study", label: "Mobile", icon: "mobile" },
   { href: "/search", label: "Cerca", icon: "search" },
   { href: "/mistakes", label: "Errori", icon: "errors" },
   { href: "/admin/review", label: "Revisione admin", icon: "admin", adminOnly: true },
@@ -102,6 +103,15 @@ function SidebarIcon({ name }: { name: string }) {
         <path d="M12 3 2.8 19a2 2 0 0 0 1.7 3h15a2 2 0 0 0 1.7-3L12 3Z" />
         <path d="M12 9v5" />
         <path d="M12 18h.01" />
+      </svg>
+    );
+  }
+  if (name === "mobile") {
+    return (
+      <svg {...common}>
+        <rect x="7" y="3" width="10" height="18" rx="2" />
+        <path d="M10 6h4" />
+        <path d="M12 17h.01" />
       </svg>
     );
   }
