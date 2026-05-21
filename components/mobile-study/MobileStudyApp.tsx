@@ -1,5 +1,6 @@
 "use client";
 
+import * as Dialog from "@radix-ui/react-dialog";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
@@ -259,6 +260,7 @@ export function MobileStudyApp() {
             question={currentQuestion}
             selectedSubject={selectedSubject}
             selectedTopic={selectedTopic}
+            theme={theme}
             total={questions.length}
             onNext={() => moveNext("next")}
             onSelectAnswer={(option) => void selectAnswer(option)}
@@ -401,6 +403,7 @@ function QuizPanel({
   question,
   selectedSubject,
   selectedTopic,
+  theme,
   total,
   onNext,
   onSelectAnswer,
@@ -411,6 +414,7 @@ function QuizPanel({
   question: QuestionView;
   selectedSubject?: Subject;
   selectedTopic?: TopicWithModule;
+  theme: Theme;
   total: number;
   onNext: () => void;
   onSelectAnswer: (option: QuestionOption) => void;
@@ -456,7 +460,7 @@ function QuizPanel({
         <button type="button" className="sb-mobile-study-secondary" disabled={hasAnswer} onClick={onSkip}>
           Salta
         </button>
-        <ReportSheet questionId={question.id} />
+        <ReportSheet questionId={question.id} theme={theme} />
         {hasAnswer ? (
           <button type="button" className="sb-mobile-study-primary" onClick={onNext}>
             Avanti
@@ -489,7 +493,7 @@ function AnswerReveal({ question, answerState }: { question: QuestionView; answe
   );
 }
 
-function ReportSheet({ questionId }: { questionId: string }) {
+function ReportSheet({ questionId, theme }: { questionId: string; theme: Theme }) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState<CardReportReason>("formatting_text");
   const [note, setNote] = useState("");
@@ -515,33 +519,54 @@ function ReportSheet({ questionId }: { questionId: string }) {
   }
 
   return (
-    <div className="sb-mobile-study-report">
-      <button type="button" className="sb-mobile-study-secondary" onClick={() => setOpen((current) => !current)}>
-        Segnala
-      </button>
-      {open ? (
-        <div className="sb-mobile-study-report-panel">
-          <label>
-            <span>Problema</span>
-            <select value={reason} onChange={(event) => setReason(event.target.value as CardReportReason)}>
-              {reportReasons.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            <span>Nota opzionale</span>
-            <textarea value={note} onChange={(event) => setNote(event.target.value)} />
-          </label>
-          <button type="button" className="sb-mobile-study-primary" disabled={busy} onClick={() => void submitReport()}>
-            {busy ? "Invio..." : "Invia"}
-          </button>
-          {message ? <p>{message}</p> : null}
-        </div>
-      ) : null}
-    </div>
+    <Dialog.Root open={open} onOpenChange={setOpen}>
+      <Dialog.Trigger asChild>
+        <button type="button" className="sb-mobile-study-secondary">
+          Segnala
+        </button>
+      </Dialog.Trigger>
+      <Dialog.Portal>
+        <Dialog.Overlay className="sb-dialog-overlay" />
+        <Dialog.Content className="sb-mobile-study-report-dialog" data-theme={theme}>
+          <div className="sb-mobile-study-report-header">
+            <div>
+              <Dialog.Title className="sb-mobile-study-report-title">Segnala problema</Dialog.Title>
+              <Dialog.Description className="sb-mobile-study-report-description">
+                Invia una nota agli admin su questa domanda.
+              </Dialog.Description>
+            </div>
+            <Dialog.Close className="sb-dialog-close" aria-label="Chiudi segnalazione">
+              <span aria-hidden="true">&times;</span>
+            </Dialog.Close>
+          </div>
+
+          <div className="sb-mobile-study-report-body">
+            <label>
+              <span>Problema</span>
+              <select value={reason} onChange={(event) => setReason(event.target.value as CardReportReason)}>
+                {reportReasons.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span>Nota opzionale</span>
+              <textarea value={note} onChange={(event) => setNote(event.target.value)} />
+            </label>
+            {message ? <p className="sb-mobile-study-report-message">{message}</p> : null}
+          </div>
+
+          <div className="sb-mobile-study-report-footer">
+            <Dialog.Close className="sb-mobile-study-secondary">Chiudi</Dialog.Close>
+            <button type="button" className="sb-mobile-study-primary" disabled={busy} onClick={() => void submitReport()}>
+              {busy ? "Invio..." : "Invia"}
+            </button>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 
