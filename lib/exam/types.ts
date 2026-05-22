@@ -49,6 +49,35 @@ export interface TopicTreeNode {
   kind: "module" | "topic";
 }
 
+export interface TopicProgressStat {
+  id: string;
+  title: string;
+  subject: string;
+  moduleTitle: string;
+  totalQuestions: number;
+  reviewedQuestions: number;
+  unseenQuestions: number;
+  attempts: number;
+  wrong: number;
+  correct: number;
+  problemScore: number;
+}
+
+export interface TopicClusterStat {
+  id: string;
+  title: string;
+  subject: string;
+  moduleTitle: string;
+  path: string[];
+  kind: "module" | "topic";
+  totalQuestions: number;
+  reviewedQuestions: number;
+  unseenQuestions: number;
+  attempts: number;
+  wrong: number;
+  correct: number;
+}
+
 export type SeedTopic = Omit<Topic, "parentTopicId" | "level" | "displayOrder" | "path" | "questionCount"> &
   Partial<Pick<Topic, "parentTopicId" | "level" | "displayOrder" | "path" | "questionCount">>;
 
@@ -161,6 +190,7 @@ export interface StudySession {
   id: string;
   userId: string;
   startedAt: string;
+  completedAt?: string | null;
   filters: {
     subject?: string;
     topic?: string;
@@ -169,6 +199,7 @@ export interface StudySession {
     limit?: number;
     order?: "random" | "ordered";
   };
+  state?: Record<string, unknown> | null;
 }
 
 export interface ReviewEvent {

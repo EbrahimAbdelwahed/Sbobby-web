@@ -9,6 +9,7 @@ export function SiteNav() {
       <div className="sb-topnav-links">
         <Link href="/studio">Studio</Link>
         <Link href="/mobile-study">Mobile</Link>
+        <Link href="/study/shared/join">Sessioni</Link>
         <Link href="/admin/review">Review admin</Link>
       </div>
     </nav>

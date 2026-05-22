@@ -1,6 +1,7 @@
 import { neon } from "@neondatabase/serverless";
 
 import seed from "@/data/seed.json";
+import { json, makeId, makeSessionCode, normalizeUserId, nowIso } from "@/lib/exam/repository-helpers";
 import type {
   AgentReviewLog,
   CardReport,
@@ -29,6 +30,8 @@ import type {
   StudySession,
   Subject,
   TopicTreeNode,
+  TopicClusterStat,
+  TopicProgressStat,
   TopicWithModule,
 } from "@/lib/exam/types";
 
@@ -48,39 +51,6 @@ function getSql() {
 
 const sql = getSql();
 const seedData = seed as unknown as SeedData;
-
-function json<T>(value: unknown, fallback: T): T {
-  if (value == null) return fallback;
-  if (typeof value === "string") {
-    try {
-      return JSON.parse(value) as T;
-    } catch {
-      return fallback;
-    }
-  }
-  return value as T;
-}
-
-function nowIso() {
-  return new Date().toISOString();
-}
-
-function makeId(prefix: string) {
-  return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function makeSessionCode() {
-  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-  let code = "";
-  for (let index = 0; index < 6; index += 1) {
-    code += alphabet[Math.floor(Math.random() * alphabet.length)];
-  }
-  return code;
-}
-
-function normalizeUserId(rawUserId: string) {
-  return rawUserId.trim().toLowerCase();
-}
 
 async function backfillTopicTaxonomy() {
   await sql.query(`
@@ -271,8 +241,13 @@ async function ensureSchema() {
       id text PRIMARY KEY,
       user_id text NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       started_at timestamptz NOT NULL,
-      filters jsonb NOT NULL
+      filters jsonb NOT NULL,
+      completed_at timestamptz,
+      state jsonb
     );
+
+    ALTER TABLE study_sessions ADD COLUMN IF NOT EXISTS completed_at timestamptz;
+    ALTER TABLE study_sessions ADD COLUMN IF NOT EXISTS state jsonb;
 
     CREATE TABLE IF NOT EXISTS review_events (
       id text PRIMARY KEY,
@@ -1080,13 +1055,43 @@ export async function createStudySession(filters: StudySession["filters"], userI
     id: makeId("session"),
     userId,
     startedAt: nowIso(),
+    completedAt: null,
     filters,
+    state: null,
   };
   await sql.query(
     "INSERT INTO study_sessions (id, user_id, started_at, filters) VALUES ($1, $2, $3, $4::jsonb)",
     [session.id, session.userId, session.startedAt, JSON.stringify(session.filters)],
   );
   return session;
+}
+
+export async function completeStudySession(input: {
+  sessionId: string;
+  userId: string;
+  state: Record<string, unknown>;
+}): Promise<StudySession> {
+  await ensureDb();
+  const completedAt = nowIso();
+  const rows = (await sql.query(
+    `UPDATE study_sessions
+     SET completed_at = $1, state = $2::jsonb
+     WHERE id = $3 AND user_id = $4
+     RETURNING id, user_id, started_at, completed_at, filters, state`,
+    [completedAt, JSON.stringify(input.state), input.sessionId, input.userId],
+  )) as Row[];
+  const row = rows[0];
+  if (!row) {
+    throw new Error("Study session not found");
+  }
+  return {
+    id: String(row.id),
+    userId: String(row.user_id),
+    startedAt: new Date(String(row.started_at)).toISOString(),
+    completedAt: row.completed_at ? new Date(String(row.completed_at)).toISOString() : null,
+    filters: json<StudySession["filters"]>(row.filters, {}),
+    state: json<Record<string, unknown> | null>(row.state, null),
+  };
 }
 
 export async function canAccessQuestion(questionId: string, isAdmin = false) {
@@ -1859,7 +1864,7 @@ export async function createChatMessage(input: {
   return rows[0] ? mapChatMessage(rows[0]) : null;
 }
 
-export async function getTopicStats(userId: string) {
+export async function getTopicStats(userId: string): Promise<TopicProgressStat[]> {
   await ensureDb();
   return (await sql.query(
     `SELECT
@@ -1884,22 +1889,77 @@ export async function getTopicStats(userId: string) {
      WHERE ${publishedQuestionSql("q", "qe").join(" AND ")}
      GROUP BY t.id, m.title
      HAVING COUNT(DISTINCT q.id) > 0
-     ORDER BY "problemScore" DESC, "reviewedQuestions" DESC, "totalQuestions" DESC
+     ORDER BY "problemScore" DESC, "unseenQuestions" DESC, "totalQuestions" DESC
      LIMIT 12`,
     [userId],
-  )) as Array<{
-    id: string;
-    title: string;
-    subject: string;
-    moduleTitle: string;
-    totalQuestions: number;
-    reviewedQuestions: number;
-    unseenQuestions: number;
-    attempts: number;
-    wrong: number;
-    correct: number;
-    problemScore: number;
-  }>;
+  )) as TopicProgressStat[];
+}
+
+export async function getLargestTopicClusters(userId: string): Promise<TopicClusterStat[]> {
+  await ensureDb();
+  return (await sql.query(
+    `WITH RECURSIVE topic_descendants AS (
+       SELECT
+         t.id AS cluster_id,
+         t.id AS topic_id
+       FROM topics t
+       UNION ALL
+       SELECT
+         td.cluster_id,
+         child.id AS topic_id
+       FROM topic_descendants td
+       JOIN topics child ON child.parent_topic_id = td.topic_id
+     ),
+     clusters AS (
+       SELECT
+         ('module:' || m.id) AS id,
+         m.title,
+         s.name AS subject,
+         m.title AS "moduleTitle",
+         jsonb_build_array(m.title) AS path,
+         'module' AS kind,
+         t.id AS topic_id
+       FROM modules m
+       JOIN subjects s ON s.id = m.subject_id
+       JOIN topics t ON t.module_id = m.id
+       UNION ALL
+       SELECT
+         ('topic:' || t.id) AS id,
+         t.title,
+         t.subject,
+         m.title AS "moduleTitle",
+         t.path,
+         'topic' AS kind,
+         td.topic_id
+       FROM topics t
+       JOIN modules m ON m.id = t.module_id
+       JOIN topic_descendants td ON td.cluster_id = t.id
+     )
+     SELECT
+       c.id,
+       c.title,
+       c.subject,
+       c."moduleTitle",
+       c.path,
+       c.kind,
+       COUNT(DISTINCT q.id)::int AS "totalQuestions",
+       COUNT(DISTINCT q.id) FILTER (WHERE re.id IS NOT NULL)::int AS "reviewedQuestions",
+       (COUNT(DISTINCT q.id)::int - COUNT(DISTINCT q.id) FILTER (WHERE re.id IS NOT NULL)::int) AS "unseenQuestions",
+       COUNT(DISTINCT re.id)::int AS attempts,
+       COUNT(DISTINCT re.id) FILTER (WHERE re.rating IN ('wrong', 'partial'))::int AS wrong,
+       COUNT(DISTINCT re.id) FILTER (WHERE re.rating IN ('correct', 'easy'))::int AS correct
+     FROM clusters c
+     JOIN question_topic_map qtm ON qtm.topic_id = c.topic_id
+     JOIN questions q ON q.id = qtm.question_id
+     JOIN question_explanations qe ON qe.question_id = q.id
+     LEFT JOIN review_events re ON re.question_id = q.id AND re.user_id = $1
+     WHERE ${publishedQuestionSql("q", "qe").join(" AND ")}
+     GROUP BY c.id, c.title, c.subject, c."moduleTitle", c.path, c.kind
+     HAVING COUNT(DISTINCT q.id) > 0
+     ORDER BY "totalQuestions" DESC, "unseenQuestions" DESC, wrong DESC, c.title
+     LIMIT 10`,
+    [userId],
+  )) as TopicClusterStat[];
 }
 
 export async function getQuestionStats(userId: string) {

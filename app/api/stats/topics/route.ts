@@ -1,5 +1,5 @@
 import { getAuthUser } from "@/lib/auth";
-import { getTopicStats } from "@/lib/exam/repository";
+import { getLargestTopicClusters, getTopicStats } from "@/lib/exam/repository";
 
 export const dynamic = "force-dynamic";
 
@@ -10,5 +10,6 @@ export async function GET() {
   }
   return Response.json({
     topics: await getTopicStats(user.email),
+    clusters: await getLargestTopicClusters(user.email),
   });
 }

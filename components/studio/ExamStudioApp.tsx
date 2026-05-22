@@ -34,6 +34,10 @@ type TopicStat = {
   wrong: number;
   correct: number;
 };
+type TopicClusterStat = TopicStat & {
+  path: string[];
+  kind: "module" | "topic";
+};
 type QuestionStat = {
   id: string;
   questionText: string;
@@ -147,6 +151,7 @@ export function ExamStudioApp() {
   const [topicTree, setTopicTree] = useState<TopicTreeNode[]>([]);
   const [questions, setQuestions] = useState<QuestionView[]>([]);
   const [topicStats, setTopicStats] = useState<TopicStat[]>([]);
+  const [topicClusters, setTopicClusters] = useState<TopicClusterStat[]>([]);
   const [questionStats, setQuestionStats] = useState<QuestionStat[]>([]);
   const [tab, setTab] = useState<"study" | "stats">("study");
   const [subject, setSubject] = useState("");
@@ -223,10 +228,11 @@ export function ExamStudioApp() {
 
   async function loadStats() {
     const [topicPayload, questionPayload] = await Promise.all([
-      jsonFetch<{ topics: TopicStat[] }>("/api/stats/topics"),
+      jsonFetch<{ topics: TopicStat[]; clusters: TopicClusterStat[] }>("/api/stats/topics"),
       jsonFetch<{ questions: QuestionStat[] }>("/api/stats/questions"),
     ]);
     setTopicStats(topicPayload.topics);
+    setTopicClusters(topicPayload.clusters);
     setQuestionStats(questionPayload.questions);
   }
 
@@ -487,14 +493,29 @@ export function ExamStudioApp() {
               <div className="mb-4">
                 <h2 className="text-base font-semibold text-[var(--sb-text)]">Progressi per argomento</h2>
                 <p className="text-sm text-[var(--sb-text-dim)]">
-                  Conteggi reali sulle domande pubblicate: riviste uniche, non viste e tentativi registrati.
+                  Domande pubblicate visibili: riviste uniche, tentativi con errore e non viste.
                 </p>
               </div>
               <div className="space-y-3">
                 {topicStats.length ? (
                   topicStats.map((item) => <TopicProgressRow key={item.id} item={item} />)
                 ) : (
-                  <p className="text-sm text-[var(--sb-text-dim)]">Nessuna revisione registrata.</p>
+                  <p className="text-sm text-[var(--sb-text-dim)]">Nessun argomento con domande pubblicate disponibile nelle statistiche.</p>
+                )}
+              </div>
+            </section>
+            <section className="sb-panel p-4">
+              <div className="mb-4">
+                <h2 className="text-base font-semibold text-[var(--sb-text)]">Cluster piu grandi</h2>
+                <p className="text-sm text-[var(--sb-text-dim)]">
+                  Moduli e rami di argomenti ordinati per volume totale di domande pubblicate.
+                </p>
+              </div>
+              <div className="grid gap-3 lg:grid-cols-2">
+                {topicClusters.length ? (
+                  topicClusters.map((item) => <TopicClusterCard key={item.id} item={item} />)
+                ) : (
+                  <p className="text-sm text-[var(--sb-text-dim)]">Nessun cluster con domande pubblicate.</p>
                 )}
               </div>
             </section>
@@ -520,8 +541,10 @@ function MetricCard({ label, value }: { label: string; value: number }) {
 
 function TopicProgressRow({ item }: { item: TopicStat }) {
   const reviewedPercent = item.totalQuestions > 0 ? Math.round((item.reviewedQuestions / item.totalQuestions) * 100) : 0;
-  const correctPercent = item.attempts > 0 ? Math.round((item.correct / item.attempts) * 100) : 0;
   const wrongPercent = item.attempts > 0 ? Math.round((item.wrong / item.attempts) * 100) : 0;
+  const wrongSegmentPercent = item.totalQuestions > 0 ? Math.round((Math.min(item.wrong, item.reviewedQuestions) / item.totalQuestions) * 100) : 0;
+  const doneSegmentPercent = Math.max(0, reviewedPercent - wrongSegmentPercent);
+  const unseenPercent = item.totalQuestions > 0 ? Math.max(0, 100 - reviewedPercent) : 0;
 
   return (
     <article className="sb-topic-progress">
@@ -534,19 +557,54 @@ function TopicProgressRow({ item }: { item: TopicStat }) {
       </div>
       <div
         className="sb-topic-progress-bar"
-        aria-label={`${item.reviewedQuestions} domande riviste su ${item.totalQuestions}`}
+        aria-label={`${item.reviewedQuestions} domande riviste, ${item.wrong} tentativi con errore, ${item.unseenQuestions} domande non viste su ${item.totalQuestions}`}
         aria-valuemax={item.totalQuestions}
         aria-valuemin={0}
         aria-valuenow={item.reviewedQuestions}
         role="progressbar"
       >
-        <span style={{ width: `${reviewedPercent}%` }} />
+        <span className="sb-topic-progress-done" style={{ width: `${doneSegmentPercent}%` }} />
+        <span className="sb-topic-progress-wrong" style={{ width: `${wrongSegmentPercent}%` }} />
+        <span className="sb-topic-progress-unseen" style={{ width: `${unseenPercent}%` }} />
       </div>
       <div className="sb-topic-progress-meta">
-        <span>{item.reviewedQuestions}/{item.totalQuestions} riviste</span>
+        <span>{item.totalQuestions} totali</span>
+        <span>{item.reviewedQuestions} riviste</span>
         <span>{item.unseenQuestions} non viste</span>
-        <span>{item.correct} corrette ({correctPercent}%)</span>
-        <span>{item.wrong} errori ({wrongPercent}%)</span>
+        <span>{item.wrong} errori/parziali ({wrongPercent}% tentativi)</span>
+      </div>
+    </article>
+  );
+}
+
+function TopicClusterCard({ item }: { item: TopicClusterStat }) {
+  const reviewedPercent = item.totalQuestions > 0 ? Math.round((item.reviewedQuestions / item.totalQuestions) * 100) : 0;
+  const path = item.path.length ? item.path.join(" / ") : item.moduleTitle;
+  return (
+    <article className="sb-topic-progress">
+      <div className="sb-topic-progress-head">
+        <div>
+          <h3>{item.title}</h3>
+          <p>{item.subject} - {path}</p>
+        </div>
+        <span>{item.kind === "module" ? "Modulo" : "Ramo"}</span>
+      </div>
+      <div
+        className="sb-topic-progress-bar"
+        aria-label={`${item.reviewedQuestions} domande riviste e ${item.unseenQuestions} non viste su ${item.totalQuestions}`}
+        aria-valuemax={item.totalQuestions}
+        aria-valuemin={0}
+        aria-valuenow={item.reviewedQuestions}
+        role="progressbar"
+      >
+        <span className="sb-topic-progress-done" style={{ width: `${reviewedPercent}%` }} />
+        <span className="sb-topic-progress-unseen" style={{ width: `${Math.max(0, 100 - reviewedPercent)}%` }} />
+      </div>
+      <div className="sb-topic-progress-meta">
+        <span>{item.totalQuestions} totali</span>
+        <span>{item.reviewedQuestions} riviste</span>
+        <span>{item.wrong} errori/parziali</span>
+        <span>{item.unseenQuestions} non viste</span>
       </div>
     </article>
   );

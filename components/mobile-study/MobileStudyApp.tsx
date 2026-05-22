@@ -16,6 +16,7 @@ import type {
 
 type Theme = "light" | "dark";
 type Phase = "loading" | "login" | "setup" | "quiz" | "complete";
+type TopicMode = "all" | "manual" | "random";
 
 type BootstrapPayload = {
   user: { email?: string; name?: string | null } | null;
@@ -25,7 +26,9 @@ type BootstrapPayload = {
 
 type StudyFilters = {
   subject: string;
-  topic: string;
+  topicMode: TopicMode;
+  topics: string[];
+  randomTopicCount: number;
   limit: number;
 };
 
@@ -44,6 +47,7 @@ type SessionSummary = {
 };
 
 const questionCountOptions = [5, 10, 20, 30];
+const randomTopicCountOptions = [2, 3, 5];
 
 const reportReasons: Array<{ id: CardReportReason; label: string }> = [
   { id: "formatting_text", label: "Testo o formattazione" },
@@ -75,6 +79,16 @@ function topicLabel(topic?: TopicWithModule) {
   return `${topic.moduleTitle} - ${path}`;
 }
 
+function topicSelectionLabel(topicIds: string[], topics: TopicWithModule[]) {
+  if (!topicIds.length) return "Tutti gli argomenti";
+  if (topicIds.length === 1) return topicLabel(topics.find((topic) => topic.id === topicIds[0]));
+  return `${topicIds.length} argomenti selezionati`;
+}
+
+function shuffleTopics(items: TopicWithModule[]) {
+  return [...items].sort(() => Math.random() - 0.5);
+}
+
 function initialTheme(): Theme {
   if (typeof window === "undefined") return "light";
   const stored = window.localStorage.getItem("sb-mobile-study-theme");
@@ -87,7 +101,13 @@ export function MobileStudyApp() {
   const [phase, setPhase] = useState<Phase>("loading");
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [topics, setTopics] = useState<TopicWithModule[]>([]);
-  const [filters, setFilters] = useState<StudyFilters>({ subject: "", topic: "", limit: 10 });
+  const [filters, setFilters] = useState<StudyFilters>({
+    subject: "",
+    topicMode: "all",
+    topics: [],
+    randomTopicCount: 3,
+    limit: 10,
+  });
   const [questions, setQuestions] = useState<QuestionView[]>([]);
   const [session, setSession] = useState<StudySession | null>(null);
   const [index, setIndex] = useState(0);
@@ -129,8 +149,11 @@ export function MobileStudyApp() {
     () => topics.filter((topic) => !filters.subject || topic.subject === filters.subject),
     [filters.subject, topics],
   );
+  const eligibleSubjectTopics = useMemo(
+    () => subjectTopics.filter((topic) => topic.questionCount > 0),
+    [subjectTopics],
+  );
   const selectedSubject = subjects.find((subject) => subject.id === filters.subject);
-  const selectedTopic = topics.find((topic) => topic.id === filters.topic);
   const currentQuestion = questions[index];
 
   function updateTheme(nextTheme: Theme) {
@@ -138,7 +161,7 @@ export function MobileStudyApp() {
   }
 
   function updateSubject(subject: string) {
-    setFilters((current) => ({ ...current, subject, topic: "" }));
+    setFilters((current) => ({ ...current, subject, topicMode: "all", topics: [] }));
   }
 
   async function startSession(nextFilters = filters) {
@@ -146,28 +169,42 @@ export function MobileStudyApp() {
       setError("Scegli una materia prima di iniziare.");
       return;
     }
+    const topicsForRequest = (() => {
+      if (nextFilters.topicMode === "all") return [];
+      if (nextFilters.topicMode === "manual") return nextFilters.topics;
+      return shuffleTopics(eligibleSubjectTopics)
+        .slice(0, Math.max(1, nextFilters.randomTopicCount))
+        .map((topic) => topic.id);
+    })();
+    if (nextFilters.topicMode !== "all" && topicsForRequest.length === 0) {
+      setError("Scegli almeno un argomento con domande pubblicate.");
+      return;
+    }
+    const resolvedFilters: StudyFilters = {
+      ...nextFilters,
+      topics: topicsForRequest,
+    };
     setBusy(true);
     setError(null);
     try {
-      const topicsForRequest = nextFilters.topic ? [nextFilters.topic] : [];
       const sessionPayload = await jsonFetch<{ session: StudySession }>("/api/study-sessions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           filters: {
-            subject: nextFilters.subject,
+            subject: resolvedFilters.subject,
             topics: topicsForRequest,
-            limit: nextFilters.limit,
+            limit: resolvedFilters.limit,
             order: "random",
           },
         }),
       });
       const params = new URLSearchParams({
-        subject: nextFilters.subject,
-        limit: String(nextFilters.limit),
+        subject: resolvedFilters.subject,
+        limit: String(resolvedFilters.limit),
         order: "random",
       });
-      if (nextFilters.topic) params.set("topic", nextFilters.topic);
+      topicsForRequest.forEach((topicId) => params.append("topic", topicId));
       const questionPayload = await jsonFetch<{ questions: QuestionView[] }>(`/api/questions?${params.toString()}`);
       if (!questionPayload.questions.length) {
         setError("Nessuna domanda trovata con questi filtri.");
@@ -178,7 +215,7 @@ export function MobileStudyApp() {
       setIndex(0);
       setAnswerState(null);
       setSummary({ answered: 0, correct: 0, wrong: 0, skipped: 0 });
-      setFilters(nextFilters);
+      setFilters(resolvedFilters);
       setPhase("quiz");
     } catch (startError) {
       setError(startError instanceof Error ? startError.message : "Sessione non avviata.");
@@ -212,14 +249,53 @@ export function MobileStudyApp() {
     }
   }
 
-  function moveNext(kind: "next" | "skip") {
+  function sessionSnapshot(reason: "completed" | "ended_early", nextSummary = summary, nextIndex = index) {
+    return {
+      reason,
+      currentIndex: nextIndex,
+      currentQuestionId: questions[nextIndex]?.id ?? null,
+      totalQuestions: questions.length,
+      questionIds: questions.map((question) => question.id),
+      summary: nextSummary,
+      filters,
+    };
+  }
+
+  async function saveSessionState(reason: "completed" | "ended_early", nextSummary = summary, nextIndex = index) {
+    if (!session) {
+      throw new Error("Sessione non disponibile.");
+    }
+    await jsonFetch<{ session: StudySession }>(`/api/study-sessions/${session.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ state: sessionSnapshot(reason, nextSummary, nextIndex) }),
+    });
+  }
+
+  async function finishSession(reason: "completed" | "ended_early", nextSummary = summary, nextIndex = index) {
+    setBusy(true);
+    setError(null);
+    try {
+      await saveSessionState(reason, nextSummary, nextIndex);
+      setPhase("complete");
+    } catch (finishError) {
+      setError(finishError instanceof Error ? finishError.message : "Stato della sessione non salvato.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function moveNext(kind: "next" | "skip") {
+    const nextSummary = kind === "skip"
+      ? { ...summary, skipped: summary.skipped + 1 }
+      : summary;
     if (kind === "skip") {
-      setSummary((current) => ({ ...current, skipped: current.skipped + 1 }));
+      setSummary(nextSummary);
     }
     setError(null);
     setAnswerState(null);
     if (index + 1 >= questions.length) {
-      setPhase("complete");
+      await finishSession("completed", nextSummary, index);
       return;
     }
     setIndex((current) => current + 1);
@@ -248,6 +324,7 @@ export function MobileStudyApp() {
             filters={filters}
             subjects={subjects}
             topics={subjectTopics}
+            eligibleTopicCount={eligibleSubjectTopics.length}
             onFiltersChange={setFilters}
             onSubjectChange={updateSubject}
             onStart={() => void startSession()}
@@ -256,22 +333,24 @@ export function MobileStudyApp() {
         {phase === "quiz" && currentQuestion ? (
           <QuizPanel
             answerState={answerState}
+            busy={busy}
             index={index}
             question={currentQuestion}
             selectedSubject={selectedSubject}
-            selectedTopic={selectedTopic}
+            selectedTopicLabel={topicSelectionLabel(filters.topics, topics)}
             theme={theme}
             total={questions.length}
-            onNext={() => moveNext("next")}
+            onFinish={() => void finishSession("ended_early")}
+            onNext={() => void moveNext("next")}
             onSelectAnswer={(option) => void selectAnswer(option)}
-            onSkip={() => moveNext("skip")}
+            onSkip={() => void moveNext("skip")}
           />
         ) : null}
         {phase === "complete" ? (
           <CompletionPanel
             filters={filters}
             selectedSubject={selectedSubject}
-            selectedTopic={selectedTopic}
+            selectedTopicLabel={topicSelectionLabel(filters.topics, topics)}
             summary={summary}
             total={questions.length}
             busy={busy}
@@ -331,6 +410,7 @@ function LoginPanel() {
 
 function SetupPanel({
   busy,
+  eligibleTopicCount,
   filters,
   subjects,
   topics,
@@ -339,6 +419,7 @@ function SetupPanel({
   onStart,
 }: {
   busy: boolean;
+  eligibleTopicCount: number;
   filters: StudyFilters;
   subjects: Subject[];
   topics: TopicWithModule[];
@@ -346,6 +427,23 @@ function SetupPanel({
   onSubjectChange: (subject: string) => void;
   onStart: () => void;
 }) {
+  const eligibleTopics = topics.filter((topic) => topic.questionCount > 0);
+
+  function updateTopicMode(topicMode: TopicMode) {
+    onFiltersChange({
+      ...filters,
+      topicMode,
+      topics: topicMode === "manual" ? filters.topics : [],
+    });
+  }
+
+  function toggleTopic(topicId: string) {
+    const nextTopics = filters.topics.includes(topicId)
+      ? filters.topics.filter((id) => id !== topicId)
+      : [...filters.topics, topicId];
+    onFiltersChange({ ...filters, topics: nextTopics });
+  }
+
   return (
     <section className="sb-mobile-study-panel">
       <div className="sb-mobile-study-section-head">
@@ -363,33 +461,99 @@ function SetupPanel({
             ))}
           </select>
         </label>
-        <label>
-          <span>Argomento</span>
-          <select
-            value={filters.topic}
-            onChange={(event) => onFiltersChange({ ...filters, topic: event.target.value })}
-          >
-            <option value="">Tutti gli argomenti</option>
-            {topics.map((topic) => (
-              <option key={topic.id} value={topic.id}>
-                {topicLabel(topic)} ({topic.questionCount})
-              </option>
-            ))}
-          </select>
-        </label>
-        <div className="sb-mobile-study-counts" role="group" aria-label="Numero di domande">
-          {questionCountOptions.map((count) => (
+        <div className="sb-mobile-study-field">
+          <span>Argomenti</span>
+          <div className="sb-mobile-study-mode-grid" role="group" aria-label="Modalita argomenti">
             <button
-              key={count}
               type="button"
-              data-active={filters.limit === count}
-              onClick={() => onFiltersChange({ ...filters, limit: count })}
+              data-active={filters.topicMode === "all"}
+              onClick={() => updateTopicMode("all")}
             >
-              {count}
+              Tutti
             </button>
-          ))}
+            <button
+              type="button"
+              data-active={filters.topicMode === "manual"}
+              onClick={() => updateTopicMode("manual")}
+            >
+              Manuale
+            </button>
+            <button
+              type="button"
+              data-active={filters.topicMode === "random"}
+              onClick={() => updateTopicMode("random")}
+            >
+              Casuali
+            </button>
+          </div>
         </div>
-        <button className="sb-mobile-study-primary" type="button" disabled={busy} onClick={onStart}>
+        {filters.topicMode === "manual" ? (
+          <div className="sb-mobile-study-topic-list" role="group" aria-label="Scegli argomenti">
+            {eligibleTopics.length ? (
+              eligibleTopics.map((topic) => (
+                <label key={topic.id} className="sb-mobile-study-topic-choice">
+                  <input
+                    type="checkbox"
+                    checked={filters.topics.includes(topic.id)}
+                    onChange={() => toggleTopic(topic.id)}
+                  />
+                  <span>
+                    <strong>{topicLabel(topic)}</strong>
+                    <small>{topic.questionCount} domande</small>
+                  </span>
+                </label>
+              ))
+            ) : (
+              <p className="sb-mobile-study-muted">Nessun argomento con domande pubblicate.</p>
+            )}
+          </div>
+        ) : null}
+        {filters.topicMode === "random" ? (
+          <div className="sb-mobile-study-field">
+            <span>Argomenti casuali</span>
+            <div className="sb-mobile-study-counts" role="group" aria-label="Numero di argomenti casuali">
+              {randomTopicCountOptions.map((count) => (
+                <button
+                  key={count}
+                  type="button"
+                  data-active={filters.randomTopicCount === count}
+                  disabled={eligibleTopicCount === 0}
+                  onClick={() => onFiltersChange({ ...filters, randomTopicCount: count })}
+                >
+                  {count}
+                </button>
+              ))}
+            </div>
+            <p className="sb-mobile-study-helper">
+              Disponibili: {eligibleTopicCount}. La sessione salvera gli argomenti estratti.
+            </p>
+          </div>
+        ) : null}
+        <div className="sb-mobile-study-field">
+          <span>Domande</span>
+          <div className="sb-mobile-study-counts" role="group" aria-label="Numero di domande">
+            {questionCountOptions.map((count) => (
+              <button
+                key={count}
+                type="button"
+                data-active={filters.limit === count}
+                onClick={() => onFiltersChange({ ...filters, limit: count })}
+              >
+                {count}
+              </button>
+            ))}
+          </div>
+        </div>
+        <button
+          className="sb-mobile-study-primary"
+          type="button"
+          disabled={
+            busy
+            || (filters.topicMode === "manual" && filters.topics.length === 0)
+            || (filters.topicMode === "random" && eligibleTopicCount === 0)
+          }
+          onClick={onStart}
+        >
           {busy ? "Avvio..." : "Inizia"}
         </button>
       </div>
@@ -399,23 +563,27 @@ function SetupPanel({
 
 function QuizPanel({
   answerState,
+  busy,
   index,
   question,
   selectedSubject,
-  selectedTopic,
+  selectedTopicLabel,
   theme,
   total,
+  onFinish,
   onNext,
   onSelectAnswer,
   onSkip,
 }: {
   answerState: AnswerState | null;
+  busy: boolean;
   index: number;
   question: QuestionView;
   selectedSubject?: Subject;
-  selectedTopic?: TopicWithModule;
+  selectedTopicLabel: string;
   theme: Theme;
   total: number;
+  onFinish: () => void;
   onNext: () => void;
   onSelectAnswer: (option: QuestionOption) => void;
   onSkip: () => void;
@@ -432,7 +600,7 @@ function QuizPanel({
       <div className="sb-mobile-study-progress" aria-hidden="true">
         <span style={{ width: `${progress}%` }} />
       </div>
-      <p className="sb-mobile-study-context">{topicLabel(selectedTopic)}</p>
+      <p className="sb-mobile-study-context">{selectedTopicLabel}</p>
       <h2>{question.questionText}</h2>
       <div className="sb-mobile-study-options">
         {question.options.map((option) => (
@@ -457,12 +625,15 @@ function QuizPanel({
       </div>
       {hasAnswer ? <AnswerReveal question={question} answerState={answerState} /> : null}
       <div className="sb-mobile-study-quiz-actions">
-        <button type="button" className="sb-mobile-study-secondary" disabled={hasAnswer} onClick={onSkip}>
+        <button type="button" className="sb-mobile-study-secondary" disabled={hasAnswer || busy} onClick={onSkip}>
           Salta
         </button>
         <ReportSheet questionId={question.id} theme={theme} />
+        <button type="button" className="sb-mobile-study-secondary" disabled={busy} onClick={onFinish}>
+          {busy ? "Salvataggio..." : "Termina simulazione"}
+        </button>
         {hasAnswer ? (
-          <button type="button" className="sb-mobile-study-primary" onClick={onNext}>
+          <button type="button" className="sb-mobile-study-primary" disabled={busy} onClick={onNext}>
             Avanti
           </button>
         ) : null}
@@ -574,7 +745,7 @@ function CompletionPanel({
   busy,
   filters,
   selectedSubject,
-  selectedTopic,
+  selectedTopicLabel,
   summary,
   total,
   onNew,
@@ -583,7 +754,7 @@ function CompletionPanel({
   busy: boolean;
   filters: StudyFilters;
   selectedSubject?: Subject;
-  selectedTopic?: TopicWithModule;
+  selectedTopicLabel: string;
   summary: SessionSummary;
   total: number;
   onNew: () => void;
@@ -596,7 +767,7 @@ function CompletionPanel({
         <h2>Sessione finita</h2>
       </div>
       <p className="sb-mobile-study-muted">
-        {selectedSubject?.name ?? filters.subject} · {topicLabel(selectedTopic)}
+        {selectedSubject?.name ?? filters.subject} · {selectedTopicLabel}
       </p>
       <div className="sb-mobile-study-summary">
         <span><strong>{total}</strong> totali</span>
