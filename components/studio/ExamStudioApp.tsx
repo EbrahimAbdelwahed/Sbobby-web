@@ -3,7 +3,6 @@
 /* eslint-disable react-hooks/exhaustive-deps, react-hooks/set-state-in-effect */
 
 import { useEffect, useMemo, useState } from "react";
-import { signOut } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 
 import type {
@@ -344,6 +343,7 @@ export function ExamStudioApp() {
   }
 
   async function logout() {
+    const { signOut } = await import("next-auth/react");
     await signOut({ callbackUrl: "/login" });
   }
 

@@ -1,8 +1,11 @@
 "use client";
 
-import { signIn } from "next-auth/react";
-
 export default function LoginPage() {
+  async function signInWithGoogle() {
+    const { signIn } = await import("next-auth/react");
+    await signIn("google", { callbackUrl: "/studio" });
+  }
+
   return (
     <main className="sb-page px-5 py-8 md:px-8">
       <section className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-md flex-col justify-center">
@@ -18,7 +21,7 @@ export default function LoginPage() {
         <div className="sb-panel p-5">
           <button
             className="sb-action-primary w-full"
-            onClick={() => signIn("google", { callbackUrl: "/studio" })}
+            onClick={() => void signInWithGoogle()}
             type="button"
           >
             Entra con Google
