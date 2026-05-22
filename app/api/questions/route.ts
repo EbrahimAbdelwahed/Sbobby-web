@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { getAuthUser, isAdminUser } from "@/lib/auth";
 import { getQuestions } from "@/lib/exam/repository";
+import type { QuestionOrder } from "@/lib/exam/types";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,12 @@ function getTopicFilters(params: URLSearchParams) {
     .concat(params.get("topics")?.split(",") ?? [])
     .map((value) => value.trim())
     .filter(Boolean);
+}
+
+function getQuestionOrder(value: string | null): QuestionOrder {
+  if (value === "ordered") return "ordered";
+  if (value === "random") return "random";
+  return "unseen_first";
 }
 
 export async function GET(request: NextRequest) {
@@ -34,7 +41,7 @@ export async function GET(request: NextRequest) {
     wrongBefore: asBool(params.get("wrongBefore")),
     includeReview,
     limit: Number(params.get("limit") ?? 100),
-    order: params.get("order") === "ordered" ? "ordered" : "random",
+    order: getQuestionOrder(params.get("order")),
   });
   return Response.json({ questions: await questions });
 }

@@ -11,6 +11,7 @@ import type {
   ChatRole,
   ChatThread,
   PublicationStatus,
+  QuestionOrder,
   Question,
   QuestionExplanation,
   QuestionOption,
@@ -650,9 +651,26 @@ function mapExplanation(row: Row | null | undefined): QuestionExplanation | null
   };
 }
 
-async function questionRows(whereSql: string, params: unknown[], limit = 100, order: "random" | "ordered" = "ordered") {
+async function questionRows(
+  whereSql: string,
+  params: unknown[],
+  limit = 100,
+  order: QuestionOrder = "ordered",
+  userId?: string,
+) {
   await ensureDb();
-  const orderSql = order === "random" ? "RANDOM()" : "q.subject, q.question_text";
+  const normalizedUserId = userId ? normalizeUserId(userId) : null;
+  const orderSql = (() => {
+    if (order === "random") return "RANDOM()";
+    if (order === "unseen_first" && normalizedUserId) {
+      return `CASE WHEN EXISTS (
+        SELECT 1 FROM review_events reorder_re
+        WHERE reorder_re.question_id = q.id AND reorder_re.user_id = $${params.length + 1}
+      ) THEN 1 ELSE 0 END, RANDOM()`;
+    }
+    return "q.subject, q.question_text";
+  })();
+  const orderParams = order === "unseen_first" && normalizedUserId ? [normalizedUserId] : [];
   return (await sql.query(
     `SELECT
        q.*,
@@ -685,8 +703,8 @@ async function questionRows(whereSql: string, params: unknown[], limit = 100, or
      ${whereSql}
      GROUP BY q.id, qe.id
      ORDER BY ${orderSql}
-     LIMIT $${params.length + 1}`,
-    [...params, limit],
+     LIMIT $${params.length + orderParams.length + 1}`,
+    [...params, ...orderParams, limit],
   )) as Row[];
 }
 
@@ -1003,7 +1021,7 @@ export async function getQuestions(filters: {
   wrongBefore?: boolean;
   includeReview?: boolean;
   limit?: number;
-  order?: "random" | "ordered";
+  order?: QuestionOrder;
 }): Promise<QuestionView[]> {
   const params: unknown[] = [];
   const clauses = ["q.is_active = true"];
@@ -1043,7 +1061,13 @@ export async function getQuestions(filters: {
     )`);
   }
 
-  const rows = await questionRows(`WHERE ${clauses.join(" AND ")}`, params, filters.limit ?? 100, filters.order);
+  const rows = await questionRows(
+    `WHERE ${clauses.join(" AND ")}`,
+    params,
+    filters.limit ?? 100,
+    filters.order,
+    filters.userId,
+  );
   return getQuestionViews(rows, filters.userId);
 }
 
@@ -1637,7 +1661,7 @@ export async function createSharedStudySession(input: {
     topics: input.filters.topics ?? (input.filters.topic ? input.filters.topic.split(",") : []),
     wrongBefore: input.filters.wrongBefore,
     limit,
-    order: input.filters.order ?? "random",
+    order: input.filters.order ?? "unseen_first",
   });
   if (questions.length === 0) {
     throw new Error("No published questions match the selected filters");
@@ -1655,7 +1679,7 @@ export async function createSharedStudySession(input: {
     code,
     createdBy: normalizeUserId(input.userId),
     status: "open",
-    filters: { ...input.filters, limit, order: input.filters.order ?? "random" },
+    filters: { ...input.filters, limit, order: input.filters.order ?? "unseen_first" },
     questionIds: questions.map((question) => question.id),
     groupReviewEnabled: input.groupReviewEnabled,
     createdAt: nowIso(),

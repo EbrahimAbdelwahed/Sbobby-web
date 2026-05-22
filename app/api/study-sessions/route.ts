@@ -2,8 +2,15 @@ import type { NextRequest } from "next/server";
 
 import { getAuthUser } from "@/lib/auth";
 import { createStudySession } from "@/lib/exam/repository";
+import type { QuestionOrder } from "@/lib/exam/types";
 
 export const dynamic = "force-dynamic";
+
+function getQuestionOrder(value: string | undefined): QuestionOrder {
+  if (value === "ordered") return "ordered";
+  if (value === "random") return "random";
+  return "unseen_first";
+}
 
 export async function POST(request: NextRequest) {
   const user = await getAuthUser();
@@ -17,7 +24,7 @@ export async function POST(request: NextRequest) {
       topics?: string[];
       wrongBefore?: boolean;
       limit?: number;
-      order?: "random" | "ordered";
+      order?: QuestionOrder;
     };
   };
   const session = createStudySession(
@@ -27,7 +34,7 @@ export async function POST(request: NextRequest) {
       topics: Array.isArray(body.filters?.topics) ? body.filters.topics.filter(Boolean) : undefined,
       wrongBefore: Boolean(body.filters?.wrongBefore),
       limit: Number.isFinite(body.filters?.limit) ? Math.max(1, Math.min(100, Number(body.filters?.limit))) : undefined,
-      order: body.filters?.order === "ordered" ? "ordered" : "random",
+      order: getQuestionOrder(body.filters?.order),
     },
     user.email,
   );

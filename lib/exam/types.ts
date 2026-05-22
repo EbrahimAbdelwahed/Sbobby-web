@@ -3,6 +3,7 @@ export type PublicationStatus = "unpublished" | "published" | "rejected" | "need
 export type SharedStudyStatus = "open" | "active" | "completed" | "archived";
 export type ChatRole = "user" | "assistant" | "system";
 export type CardReportReason = "formatting_text" | "wrong_answer" | "wrong_exam_program";
+export type QuestionOrder = "random" | "ordered" | "unseen_first";
 
 export interface Subject {
   id: string;
@@ -197,7 +198,7 @@ export interface StudySession {
     topics?: string[];
     wrongBefore?: boolean;
     limit?: number;
-    order?: "random" | "ordered";
+    order?: QuestionOrder;
   };
   state?: Record<string, unknown> | null;
 }

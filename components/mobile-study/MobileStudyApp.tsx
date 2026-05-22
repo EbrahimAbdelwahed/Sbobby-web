@@ -11,6 +11,8 @@ import type {
   Rating,
   StudySession,
   Subject,
+  TopicClusterStat,
+  TopicProgressStat,
   TopicWithModule,
 } from "@/lib/exam/types";
 
@@ -22,6 +24,11 @@ type BootstrapPayload = {
   user: { email?: string; name?: string | null } | null;
   subjects: Subject[];
   topics: TopicWithModule[];
+};
+
+type TopicStatsPayload = {
+  topics: TopicProgressStat[];
+  clusters: TopicClusterStat[];
 };
 
 type StudyFilters = {
@@ -101,6 +108,8 @@ export function MobileStudyApp() {
   const [phase, setPhase] = useState<Phase>("loading");
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [topics, setTopics] = useState<TopicWithModule[]>([]);
+  const [topicStats, setTopicStats] = useState<TopicProgressStat[]>([]);
+  const [topicClusters, setTopicClusters] = useState<TopicClusterStat[]>([]);
   const [filters, setFilters] = useState<StudyFilters>({
     subject: "",
     topicMode: "all",
@@ -131,6 +140,17 @@ export function MobileStudyApp() {
         }
         setSubjects(payload.subjects);
         setTopics(payload.topics);
+        void jsonFetch<TopicStatsPayload>("/api/stats/topics")
+          .then((statsPayload) => {
+            if (!active) return;
+            setTopicStats(statsPayload.topics);
+            setTopicClusters(statsPayload.clusters);
+          })
+          .catch(() => {
+            if (!active) return;
+            setTopicStats([]);
+            setTopicClusters([]);
+          });
         const firstSubject = payload.subjects[0]?.id ?? "";
         setFilters((current) => ({ ...current, subject: firstSubject }));
         setPhase("setup");
@@ -195,14 +215,14 @@ export function MobileStudyApp() {
             subject: resolvedFilters.subject,
             topics: topicsForRequest,
             limit: resolvedFilters.limit,
-            order: "random",
+            order: "unseen_first",
           },
         }),
       });
       const params = new URLSearchParams({
         subject: resolvedFilters.subject,
         limit: String(resolvedFilters.limit),
-        order: "random",
+        order: "unseen_first",
       });
       topicsForRequest.forEach((topicId) => params.append("topic", topicId));
       const questionPayload = await jsonFetch<{ questions: QuestionView[] }>(`/api/questions?${params.toString()}`);
@@ -319,16 +339,24 @@ export function MobileStudyApp() {
         {phase === "loading" ? <LoadingPanel /> : null}
         {phase === "login" ? <LoginPanel /> : null}
         {phase === "setup" ? (
-          <SetupPanel
-            busy={busy}
-            filters={filters}
-            subjects={subjects}
-            topics={subjectTopics}
-            eligibleTopicCount={eligibleSubjectTopics.length}
-            onFiltersChange={setFilters}
-            onSubjectChange={updateSubject}
-            onStart={() => void startSession()}
-          />
+          <>
+            <SetupPanel
+              busy={busy}
+              filters={filters}
+              subjects={subjects}
+              topics={subjectTopics}
+              eligibleTopicCount={eligibleSubjectTopics.length}
+              onFiltersChange={setFilters}
+              onSubjectChange={updateSubject}
+              onStart={() => void startSession()}
+            />
+            <MobileStatsPanel
+              clusters={topicClusters}
+              subject={filters.subject}
+              subjectName={selectedSubject?.name}
+              topics={topicStats}
+            />
+          </>
         ) : null}
         {phase === "quiz" && currentQuestion ? (
           <QuizPanel
@@ -543,7 +571,11 @@ function SetupPanel({
               </button>
             ))}
           </div>
+          <p className="sb-mobile-study-helper">
+            Priorita alle domande mai incontrate; se non bastano, Sbobby completa con domande gia viste.
+          </p>
         </div>
+        <SharedSessionJoinPanel />
         <button
           className="sb-mobile-study-primary"
           type="button"
@@ -558,6 +590,160 @@ function SetupPanel({
         </button>
       </div>
     </section>
+  );
+}
+
+function SharedSessionJoinPanel() {
+  const [code, setCode] = useState("");
+  const [message, setMessage] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function joinSharedSession() {
+    const normalizedCode = code.trim().toUpperCase();
+    setCode(normalizedCode);
+    if (!normalizedCode) {
+      setMessage("Inserisci il codice della sessione condivisa.");
+      return;
+    }
+    setBusy(true);
+    setMessage(null);
+    try {
+      const response = await fetch("/api/shared-sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: normalizedCode }),
+      });
+      if (response.ok) {
+        window.location.href = `/study/shared/${encodeURIComponent(normalizedCode)}`;
+        return;
+      }
+      if (response.status === 401) {
+        setMessage("Devi accedere prima di entrare in una sessione condivisa.");
+        return;
+      }
+      if (response.status === 400 || response.status === 404) {
+        setMessage("Codice non valido o sessione non trovata.");
+        return;
+      }
+      setMessage("Impossibile entrare nella sessione. Riprova.");
+    } catch {
+      setMessage("Connessione non riuscita. Riprova.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="sb-mobile-study-shared">
+      <div>
+        <span>Sessione condivisa</span>
+        <p>Entra con un codice ricevuto dal gruppo di studio.</p>
+      </div>
+      <div className="sb-mobile-study-shared-row">
+        <input
+          autoCapitalize="characters"
+          autoComplete="off"
+          inputMode="text"
+          maxLength={12}
+          placeholder="ABCD12"
+          value={code}
+          onChange={(event) => {
+            setCode(event.target.value.toUpperCase());
+            if (message) setMessage(null);
+          }}
+        />
+        <button type="button" className="sb-mobile-study-secondary" disabled={busy} onClick={() => void joinSharedSession()}>
+          {busy ? "..." : "Entra"}
+        </button>
+      </div>
+      {message ? <p className="sb-mobile-study-helper">{message}</p> : null}
+    </div>
+  );
+}
+
+function MobileStatsPanel({
+  clusters,
+  subject,
+  subjectName,
+  topics,
+}: {
+  clusters: TopicClusterStat[];
+  subject: string;
+  subjectName?: string;
+  topics: TopicProgressStat[];
+}) {
+  const subjectTopics = topics.filter((item) => !subject || item.subject === subject).slice(0, 5);
+  const topClusters = clusters
+    .filter((item) => !subject || item.subject === subject || item.subject === subjectName)
+    .slice(0, 4);
+  if (!subjectTopics.length && !topClusters.length) return null;
+
+  return (
+    <section className="sb-mobile-study-panel sb-mobile-study-stats">
+      <div className="sb-mobile-study-section-head">
+        <p className="sb-mobile-study-kicker">Progressi</p>
+        <h2>Cluster e argomenti</h2>
+      </div>
+      {subjectTopics.length ? (
+        <div className="sb-mobile-study-stat-group">
+          <h3>Argomenti prioritari</h3>
+          {subjectTopics.map((item) => <MobileTopicProgress key={item.id} item={item} />)}
+        </div>
+      ) : null}
+      {topClusters.length ? (
+        <div className="sb-mobile-study-stat-group">
+          <h3>Cluster piu grandi</h3>
+          {topClusters.map((item) => <MobileClusterCard key={item.id} item={item} />)}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function MobileTopicProgress({ item }: { item: TopicProgressStat }) {
+  const reviewedPercent = item.totalQuestions > 0 ? Math.round((item.reviewedQuestions / item.totalQuestions) * 100) : 0;
+  const wrongSegmentPercent = item.totalQuestions > 0
+    ? Math.round((Math.min(item.wrong, item.reviewedQuestions) / item.totalQuestions) * 100)
+    : 0;
+  const doneSegmentPercent = Math.max(0, reviewedPercent - wrongSegmentPercent);
+  const unseenPercent = item.totalQuestions > 0 ? Math.max(0, 100 - reviewedPercent) : 0;
+
+  return (
+    <article className="sb-mobile-study-stat-card">
+      <div className="sb-mobile-study-stat-head">
+        <div>
+          <strong>{item.title}</strong>
+          <span>{item.moduleTitle}</span>
+        </div>
+        <em>{reviewedPercent}%</em>
+      </div>
+      <div
+        className="sb-mobile-study-stat-bar"
+        aria-label={`${item.reviewedQuestions} domande riviste, ${item.wrong} tentativi con errore, ${item.unseenQuestions} non viste`}
+      >
+        <span data-kind="done" style={{ width: `${doneSegmentPercent}%` }} />
+        <span data-kind="wrong" style={{ width: `${wrongSegmentPercent}%` }} />
+        <span data-kind="unseen" style={{ width: `${unseenPercent}%` }} />
+      </div>
+      <p>{item.totalQuestions} totali · {item.reviewedQuestions} riviste · {item.unseenQuestions} non viste · {item.wrong} errori/parziali</p>
+    </article>
+  );
+}
+
+function MobileClusterCard({ item }: { item: TopicClusterStat }) {
+  const reviewedPercent = item.totalQuestions > 0 ? Math.round((item.reviewedQuestions / item.totalQuestions) * 100) : 0;
+  const path = item.path.length ? item.path.join(" / ") : item.moduleTitle;
+  return (
+    <article className="sb-mobile-study-stat-card">
+      <div className="sb-mobile-study-stat-head">
+        <div>
+          <strong>{item.title}</strong>
+          <span>{path}</span>
+        </div>
+        <em>{item.totalQuestions}</em>
+      </div>
+      <p>{reviewedPercent}% riviste · {item.unseenQuestions} non viste · {item.wrong} errori/parziali</p>
+    </article>
   );
 }
 

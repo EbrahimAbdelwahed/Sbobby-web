@@ -313,7 +313,7 @@ export function ExamStudioApp() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        filters: { subject, topics: selectedTopicIds, wrongBefore, limit: questionLimit, order: "random" },
+        filters: { subject, topics: selectedTopicIds, wrongBefore, limit: questionLimit, order: "unseen_first" },
         groupReviewEnabled: true,
       }),
     });

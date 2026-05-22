@@ -2,8 +2,15 @@ import type { NextRequest } from "next/server";
 
 import { getAuthUser } from "@/lib/auth";
 import { createSharedStudySession, joinSharedStudySession } from "@/lib/exam/repository";
+import type { QuestionOrder } from "@/lib/exam/types";
 
 export const dynamic = "force-dynamic";
+
+function getQuestionOrder(value: unknown): QuestionOrder {
+  if (value === "ordered") return "ordered";
+  if (value === "random") return "random";
+  return "unseen_first";
+}
 
 function parseFilters(filters: Record<string, unknown> | undefined) {
   return {
@@ -12,7 +19,7 @@ function parseFilters(filters: Record<string, unknown> | undefined) {
     topics: Array.isArray(filters?.topics) ? filters.topics.filter((item): item is string => typeof item === "string") : undefined,
     wrongBefore: Boolean(filters?.wrongBefore),
     limit: typeof filters?.limit === "number" ? filters.limit : undefined,
-    order: filters?.order === "ordered" ? "ordered" as const : "random" as const,
+    order: getQuestionOrder(filters?.order),
   };
 }
 
