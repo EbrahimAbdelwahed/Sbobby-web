@@ -650,8 +650,9 @@ function mapExplanation(row: Row | null | undefined): QuestionExplanation | null
   };
 }
 
-async function questionRows(whereSql: string, params: unknown[], limit = 100) {
+async function questionRows(whereSql: string, params: unknown[], limit = 100, order: "random" | "ordered" = "ordered") {
   await ensureDb();
+  const orderSql = order === "random" ? "RANDOM()" : "q.subject, q.question_text";
   return (await sql.query(
     `SELECT
        q.*,
@@ -683,7 +684,7 @@ async function questionRows(whereSql: string, params: unknown[], limit = 100) {
      LEFT JOIN question_explanations qe ON qe.question_id = q.id
      ${whereSql}
      GROUP BY q.id, qe.id
-     ORDER BY q.subject, q.question_text
+     ORDER BY ${orderSql}
      LIMIT $${params.length + 1}`,
     [...params, limit],
   )) as Row[];
@@ -1042,10 +1043,7 @@ export async function getQuestions(filters: {
     )`);
   }
 
-  const rows = await questionRows(`WHERE ${clauses.join(" AND ")}`, params, filters.limit ?? 100);
-  if (filters.order === "random") {
-    rows.sort(() => Math.random() - 0.5);
-  }
+  const rows = await questionRows(`WHERE ${clauses.join(" AND ")}`, params, filters.limit ?? 100, filters.order);
   return getQuestionViews(rows, filters.userId);
 }
 
