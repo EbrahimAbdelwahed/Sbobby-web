@@ -1,6 +1,7 @@
 import { neon } from "@neondatabase/serverless";
 
 import seed from "@/data/seed.json";
+import { PROGRAM_ELIGIBILITY_POLICY_VERSION, programEligibilitySql } from "@/lib/exam/program-eligibility";
 import { json, makeId, makeSessionCode, normalizeUserId, nowIso } from "@/lib/exam/repository-helpers";
 import type {
   AgentReviewLog,
@@ -205,6 +206,10 @@ async function ensureSchema() {
     ALTER TABLE questions ADD COLUMN IF NOT EXISTS published_at timestamptz;
     ALTER TABLE questions ADD COLUMN IF NOT EXISTS published_by text;
     ALTER TABLE questions ADD COLUMN IF NOT EXISTS admin_note text;
+    ALTER TABLE questions ADD COLUMN IF NOT EXISTS program_eligible boolean NOT NULL DEFAULT false;
+    ALTER TABLE questions ADD COLUMN IF NOT EXISTS program_eligibility_reason text NOT NULL DEFAULT 'unclassified';
+    ALTER TABLE questions ADD COLUMN IF NOT EXISTS program_eligibility_policy_version text NOT NULL DEFAULT '${PROGRAM_ELIGIBILITY_POLICY_VERSION}';
+    ALTER TABLE questions ADD COLUMN IF NOT EXISTS program_eligibility_updated_at timestamptz;
 
     CREATE TABLE IF NOT EXISTS question_options (
       id text PRIMARY KEY,
@@ -337,6 +342,7 @@ async function ensureSchema() {
     CREATE INDEX IF NOT EXISTS idx_questions_subject ON questions(subject);
     CREATE INDEX IF NOT EXISTS idx_questions_review ON questions(review_status_id, reliability_level_id);
     CREATE INDEX IF NOT EXISTS idx_questions_publication ON questions(publication_status, is_active);
+    CREATE INDEX IF NOT EXISTS idx_questions_program_eligible ON questions (program_eligible) WHERE is_active = true;
     CREATE INDEX IF NOT EXISTS idx_review_events_user_question ON review_events(user_id, question_id);
     CREATE INDEX IF NOT EXISTS idx_shared_answers_session_question ON shared_study_answers(session_id, question_id);
     CREATE INDEX IF NOT EXISTS idx_chat_messages_thread ON chat_messages(thread_id, created_at);
@@ -625,6 +631,9 @@ function mapQuestion(row: Row): Question {
     reviewStatusId: String(row.review_status_id),
     reliabilityLevelId: String(row.reliability_level_id),
     publicationStatus: String(row.publication_status ?? "unpublished") as PublicationStatus,
+    programEligible: Boolean(row.program_eligible),
+    programEligibilityReason: String(row.program_eligibility_reason ?? "unclassified"),
+    programEligibilityPolicyVersion: String(row.program_eligibility_policy_version ?? PROGRAM_ELIGIBILITY_POLICY_VERSION),
     publishedAt: row.published_at ? new Date(String(row.published_at)).toISOString() : null,
     publishedBy: row.published_by ? String(row.published_by) : null,
     adminNote: row.admin_note ? String(row.admin_note) : null,
@@ -827,8 +836,12 @@ async function getSourceChunkMap(ids: string[]) {
   return new Map(rows.map((row) => [String(row.id), mapSourceChunk(row)]));
 }
 
-function publishedQuestionSql(alias = "q", explanationAlias = "qe") {
-  return [
+function publishedQuestionSql(
+  alias = "q",
+  explanationAlias = "qe",
+  options: { requireProgramEligible?: boolean } = {},
+) {
+  const clauses = [
     `${alias}.is_active = true`,
     `${alias}.publication_status = 'published'`,
     `${explanationAlias}.id IS NOT NULL`,
@@ -850,6 +863,10 @@ function publishedQuestionSql(alias = "q", explanationAlias = "qe") {
       )
     )`,
   ];
+  if (options.requireProgramEligible) {
+    clauses.push(...programEligibilitySql(alias));
+  }
+  return clauses;
 }
 
 function explanationNeedsReviewSql(alias = "qex") {
@@ -895,11 +912,23 @@ export async function getModules(): Promise<Module[]> {
   }));
 }
 
-export async function getTopics(subject?: string | null): Promise<TopicWithModule[]> {
+type TopicCountMode = "all" | "publishedEligible";
+
+export async function getTopics(
+  subject?: string | null,
+  options: { countsFor?: TopicCountMode } = {},
+): Promise<TopicWithModule[]> {
   await ensureDb();
   const params: unknown[] = [];
   const where = subject ? "WHERE t.subject = $1" : "";
   if (subject) params.push(subject);
+  const countExpression = options.countsFor === "publishedEligible"
+    ? `COUNT(DISTINCT q.id) FILTER (WHERE ${publishedQuestionSql("q", "qe", { requireProgramEligible: true }).join(" AND ")})::int`
+    : "COUNT(DISTINCT qtm.question_id)::int";
+  const questionJoins = options.countsFor === "publishedEligible"
+    ? `LEFT JOIN questions q ON q.id = qtm.question_id
+     LEFT JOIN question_explanations qe ON qe.question_id = q.id`
+    : "";
   const rows = (await sql.query(
     `SELECT
        t.id,
@@ -912,10 +941,11 @@ export async function getTopics(subject?: string | null): Promise<TopicWithModul
        t.display_order,
        t.path,
        m.title AS module_title,
-       COUNT(DISTINCT qtm.question_id)::int AS question_count
+       ${countExpression} AS question_count
      FROM topics t
      JOIN modules m ON m.id = t.module_id
      LEFT JOIN question_topic_map qtm ON qtm.topic_id = t.id
+     ${questionJoins}
      ${where}
      GROUP BY t.id, m.title
      ORDER BY t.subject, m.title, t.display_order, t.title`,
@@ -924,8 +954,11 @@ export async function getTopics(subject?: string | null): Promise<TopicWithModul
   return rows.map(mapTopic);
 }
 
-export async function getTopicTree(subject?: string | null): Promise<TopicTreeNode[]> {
-  const [modules, topics] = await Promise.all([getModules(), getTopics(subject)]);
+export async function getTopicTree(
+  subject?: string | null,
+  options: { countsFor?: TopicCountMode } = {},
+): Promise<TopicTreeNode[]> {
+  const [modules, topics] = await Promise.all([getModules(), getTopics(subject, options)]);
   const topicNodes = new Map<string, TopicTreeNode>();
   const moduleNodes = new Map<string, TopicTreeNode>();
 
@@ -1025,8 +1058,16 @@ export async function getQuestions(filters: {
 }): Promise<QuestionView[]> {
   const params: unknown[] = [];
   const clauses = ["q.is_active = true"];
+  const topicFilters = [...(filters.topic ? [filters.topic] : []), ...(filters.topics ?? [])]
+    .map((topic) => topic.trim())
+    .filter(Boolean);
+  const hasExplicitTopicFilters = topicFilters.length > 0;
   if (!filters.includeReview) {
-    clauses.push(...publishedQuestionSql("q", "qe").slice(1));
+    clauses.push(
+      ...publishedQuestionSql("q", "qe", {
+        requireProgramEligible: !hasExplicitTopicFilters,
+      }).slice(1),
+    );
   }
   if (filters.questionId) {
     params.push(filters.questionId);
@@ -1036,9 +1077,6 @@ export async function getQuestions(filters: {
     params.push(filters.subject);
     clauses.push(`q.subject = $${params.length}`);
   }
-  const topicFilters = [...(filters.topic ? [filters.topic] : []), ...(filters.topics ?? [])]
-    .map((topic) => topic.trim())
-    .filter(Boolean);
   if (topicFilters.length > 0) {
     const topicIds = Array.from(
       new Set((await Promise.all(topicFilters.map((topic) => getTopicBranchIds(topic)))).flat()),
@@ -1118,7 +1156,9 @@ export async function completeStudySession(input: {
 
 export async function canAccessQuestion(questionId: string, isAdmin = false) {
   await ensureDb();
-  const clauses = isAdmin ? ["q.id = $1"] : ["q.id = $1", ...publishedQuestionSql("q", "qe")];
+  const clauses = isAdmin
+    ? ["q.id = $1"]
+    : ["q.id = $1", ...publishedQuestionSql("q", "qe", { requireProgramEligible: true })];
   const rows = (await sql.query(
     `SELECT q.id
      FROM questions q
@@ -1630,7 +1670,7 @@ function mapSharedAnswer(row: Row): SharedStudyAnswer {
 async function getQuestionViewsByIds(questionIds: string[], userId: string) {
   if (questionIds.length === 0) return [];
   const rows = await questionRows(
-    `WHERE q.id = ANY($1::text[]) AND ${publishedQuestionSql("q", "qe").join(" AND ")}`,
+    `WHERE q.id = ANY($1::text[]) AND ${publishedQuestionSql("q", "qe", { requireProgramEligible: true }).join(" AND ")}`,
     [questionIds],
     questionIds.length,
   );
@@ -1641,7 +1681,9 @@ async function getQuestionViewsByIds(questionIds: string[], userId: string) {
 }
 
 export async function getQuestionById(questionId: string, userId: string, isAdmin = false) {
-  const clauses = isAdmin ? ["q.id = $1"] : ["q.id = $1", ...publishedQuestionSql("q", "qe")];
+  const clauses = isAdmin
+    ? ["q.id = $1"]
+    : ["q.id = $1", ...publishedQuestionSql("q", "qe", { requireProgramEligible: true })];
   const rows = await questionRows(`WHERE ${clauses.join(" AND ")}`, [questionId], 1);
   const [question] = await getQuestionViews(rows, userId);
   return question ?? null;
@@ -1908,7 +1950,7 @@ export async function getTopicStats(userId: string): Promise<TopicProgressStat[]
      JOIN questions q ON q.id = qtm.question_id
      JOIN question_explanations qe ON qe.question_id = q.id
      LEFT JOIN review_events re ON re.question_id = qtm.question_id AND re.user_id = $1
-     WHERE ${publishedQuestionSql("q", "qe").join(" AND ")}
+     WHERE ${publishedQuestionSql("q", "qe", { requireProgramEligible: true }).join(" AND ")}
      GROUP BY t.id, m.title
      HAVING COUNT(DISTINCT q.id) > 0
      ORDER BY "problemScore" DESC, "unseenQuestions" DESC, "totalQuestions" DESC
@@ -1975,7 +2017,7 @@ export async function getLargestTopicClusters(userId: string): Promise<TopicClus
      JOIN questions q ON q.id = qtm.question_id
      JOIN question_explanations qe ON qe.question_id = q.id
      LEFT JOIN review_events re ON re.question_id = q.id AND re.user_id = $1
-     WHERE ${publishedQuestionSql("q", "qe").join(" AND ")}
+     WHERE ${publishedQuestionSql("q", "qe", { requireProgramEligible: true }).join(" AND ")}
      GROUP BY c.id, c.title, c.subject, c."moduleTitle", c.path, c.kind
      HAVING COUNT(DISTINCT q.id) > 0
      ORDER BY "totalQuestions" DESC, "unseenQuestions" DESC, wrong DESC, c.title
@@ -2000,7 +2042,7 @@ export async function getQuestionStats(userId: string) {
      FROM questions q
      JOIN question_explanations qe ON qe.question_id = q.id
      JOIN review_events re ON re.question_id = q.id AND re.user_id = $1
-     WHERE ${publishedQuestionSql("q", "qe").join(" AND ")}
+     WHERE ${publishedQuestionSql("q", "qe", { requireProgramEligible: true }).join(" AND ")}
      GROUP BY q.id
      HAVING COUNT(re.id) > 0
      ORDER BY "problemScore" DESC

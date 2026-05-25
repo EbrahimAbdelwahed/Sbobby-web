@@ -7,8 +7,8 @@ export async function GET() {
   const [user, subjects, topics, tree] = await Promise.all([
     getAuthUser(),
     getSubjects(),
-    getTopics(),
-    getTopicTree(),
+    getTopics(null, { countsFor: "publishedEligible" }),
+    getTopicTree(null, { countsFor: "publishedEligible" }),
   ]);
   return Response.json({
     user,

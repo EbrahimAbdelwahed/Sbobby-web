@@ -77,10 +77,11 @@ function cleanupTechnicalMetadata(value) {
 
 function parseOptionsFromRawText(question) {
   const raw = String(question.rawText ?? "").replace(/\r\n/g, "\n");
-  const matches = [...raw.matchAll(/(?:^|\n)\s*([A-Da-d])[\).]\s+/g)];
-  if (matches.length !== 4) return null;
+  const matches = [...raw.matchAll(/(?:^|\n)\s*([A-Fa-f])[\).]\s+/g)];
+  if (matches.length < 2) return null;
   const labels = matches.map((match) => normalizeLabel(match[1]));
-  if (labels.join("") !== "ABCD") return null;
+  const expectedLabels = "ABCDEF".slice(0, labels.length);
+  if (labels.join("") !== expectedLabels) return null;
 
   const questionText = cleanupTechnicalMetadata(raw.slice(0, matches[0].index).trim());
   if (!questionText) return null;
@@ -119,9 +120,9 @@ function optionSetFor(question) {
 
 function isValidFourOptionMcq(candidate) {
   if (!candidate.questionText || candidate.questionText.length < 4) return false;
-  if (candidate.options.length !== 4) return false;
+  if (candidate.options.length < 2 || candidate.options.length > 6) return false;
   const labels = candidate.options.map((option) => option.label).join("");
-  if (labels !== "ABCD") return false;
+  if (labels !== "ABCDEF".slice(0, candidate.options.length)) return false;
   const normalizedOptions = candidate.options.map((option) => normalizeText(option.text));
   if (normalizedOptions.some((text) => !text || text.length < 2)) return false;
   if (new Set(normalizedOptions).size !== normalizedOptions.length) return false;
@@ -145,7 +146,11 @@ function mapAnswerToOption(row, options) {
 
   const containedText = options.find((option) => {
     const optionText = normalizeText(option.text);
-    return optionText.length >= 8 && (normalizedText.includes(optionText) || optionText.includes(normalizedText));
+    return (
+      normalizedText.length >= 8
+      && optionText.length >= 8
+      && (normalizedText.includes(optionText) || optionText.includes(normalizedText))
+    );
   });
   if (containedText) return { option: containedText, strategy: "answer_text_contains" };
 

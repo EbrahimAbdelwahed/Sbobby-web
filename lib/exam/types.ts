@@ -131,6 +131,9 @@ export interface Question {
   reviewStatusId: string;
   reliabilityLevelId: string;
   publicationStatus: PublicationStatus;
+  programEligible: boolean;
+  programEligibilityReason: string;
+  programEligibilityPolicyVersion: string;
   publishedAt: string | null;
   publishedBy: string | null;
   adminNote: string | null;

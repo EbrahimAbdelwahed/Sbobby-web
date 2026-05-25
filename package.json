@@ -13,6 +13,9 @@
     "import:windowjudge15": "node scripts/import-windowjudge15.mjs",
     "normalize:mcq": "node scripts/pipeline/normalize-mcq-cards.mjs",
     "normalize:mcq:apply": "node scripts/pipeline/normalize-mcq-cards.mjs --apply",
+    "program-eligibility": "node scripts/pipeline/update-program-eligibility.mjs",
+    "program-eligibility:apply": "node scripts/pipeline/update-program-eligibility.mjs --apply",
+    "repair:questions": "node scripts/pipeline/repair-question-db.mjs",
     "tag:anato2-cusella": "node scripts/pipeline/tag-anato2-cusella-questions.mjs",
     "verify:mcq": "node scripts/pipeline/verify-mcq-publication.mjs"
   },
