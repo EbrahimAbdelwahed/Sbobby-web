@@ -342,6 +342,11 @@ export function ExamStudioApp() {
     await loadStats();
   }
 
+  function skipQuestion() {
+    setShowAnswer(false);
+    setCurrentIndex((index) => Math.min(index + 1, Math.max(questions.length - 1, 0)));
+  }
+
   async function logout() {
     const { signOut } = await import("next-auth/react");
     await signOut({ callbackUrl: "/login" });
@@ -474,6 +479,7 @@ export function ExamStudioApp() {
                     total={questions.length}
                     showAnswer={showAnswer}
                     onToggleAnswer={() => setShowAnswer((value) => !value)}
+                    onSkip={skipQuestion}
                     onRate={submitRating}
                   />
                 </>
@@ -725,6 +731,7 @@ function StudyCard({
   total,
   showAnswer,
   onToggleAnswer,
+  onSkip,
   onRate,
 }: {
   question: QuestionView;
@@ -732,6 +739,7 @@ function StudyCard({
   total: number;
   showAnswer: boolean;
   onToggleAnswer: () => void;
+  onSkip: () => void;
   onRate: (rating: Rating) => void;
 }) {
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
@@ -795,9 +803,14 @@ function StudyCard({
           />
         </label>
       )}
-      <button className="sb-action-primary mt-6" onClick={onToggleAnswer}>
-        {showAnswer ? "Nascondi risposta" : "Mostra risposta"}
-      </button>
+      <div className="mt-6 flex flex-wrap gap-2">
+        <button className="sb-action-primary" onClick={onToggleAnswer}>
+          {showAnswer ? "Nascondi risposta" : "Mostra risposta"}
+        </button>
+        <button className="sb-button-secondary" onClick={onSkip}>
+          Salta
+        </button>
+      </div>
       {showAnswer && question.explanation ? (
         <div className="mt-6 border-t border-[var(--sb-border)] pt-6">
           <div className="sb-answer-box">
