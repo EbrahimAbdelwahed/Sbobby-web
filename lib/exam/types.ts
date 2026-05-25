@@ -2,7 +2,11 @@ export type Rating = "wrong" | "partial" | "correct" | "easy";
 export type PublicationStatus = "unpublished" | "published" | "rejected" | "needs_repair" | "not_recoverable";
 export type SharedStudyStatus = "open" | "active" | "completed" | "archived";
 export type ChatRole = "user" | "assistant" | "system";
-export type CardReportReason = "formatting_text" | "wrong_answer" | "wrong_exam_program";
+export type CardReportReason =
+  | "formatting_text"
+  | "wrong_answer"
+  | "wrong_exam_program"
+  | "skip_possible_out_of_program";
 export type QuestionOrder = "random" | "ordered" | "unseen_first";
 
 export interface Subject {

@@ -82,6 +82,7 @@ const reportReasons: Array<{ id: CardReportReason; label: string }> = [
   { id: "formatting_text", label: "Formattazione/testo sbagliati" },
   { id: "wrong_answer", label: "Risposta sbagliata o infattuale" },
   { id: "wrong_exam_program", label: "Non appartiene al programma flaggato" },
+  { id: "skip_possible_out_of_program", label: "Skip mobile: possibile fuori programma" },
 ];
 
 function reportReasonLabel(reason: CardReport["reason"]) {

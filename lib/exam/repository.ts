@@ -1170,6 +1170,22 @@ export async function canAccessQuestion(questionId: string, isAdmin = false) {
   return rows.length > 0;
 }
 
+async function canAccessPublishedQuestion(questionId: string, isAdmin = false) {
+  await ensureDb();
+  const clauses = isAdmin
+    ? ["q.id = $1"]
+    : ["q.id = $1", ...publishedQuestionSql("q", "qe", { requireProgramEligible: false })];
+  const rows = (await sql.query(
+    `SELECT q.id
+     FROM questions q
+     LEFT JOIN question_explanations qe ON qe.question_id = q.id
+     WHERE ${clauses.join(" AND ")}
+     LIMIT 1`,
+    [questionId],
+  )) as Row[];
+  return rows.length > 0;
+}
+
 export async function createReviewEvent(input: {
   userId: string;
   questionId: string;
@@ -1322,6 +1338,119 @@ export async function createCardReport(input: {
   );
   const rows = (await sql.query("SELECT * FROM card_reports WHERE id = $1", [id])) as Row[];
   return rows[0] ? mapCardReport(rows[0]) : null;
+}
+
+export async function createMobileSkipProgramReport(input: {
+  questionId: string;
+  userId: string;
+  sessionId?: string | null;
+}) {
+  await ensureDb();
+  if (!(await canAccessPublishedQuestion(input.questionId))) {
+    throw new Error("Question is not available");
+  }
+  const normalizedUserId = normalizeUserId(input.userId);
+  const existingRows = (await sql.query(
+    `SELECT *
+     FROM card_reports
+     WHERE question_id = $1
+       AND user_id = $2
+       AND reason = 'skip_possible_out_of_program'
+       AND status IN ('open', 'reviewing')
+     ORDER BY created_at DESC
+     LIMIT 1`,
+    [input.questionId, normalizedUserId],
+  )) as Row[];
+  if (existingRows[0]) {
+    return mapCardReport(existingRows[0]);
+  }
+
+  const id = makeId("report");
+  await sql.query(
+    `INSERT INTO card_reports (id, question_id, user_id, reason, note, status, created_at)
+     VALUES ($1, $2, $3, 'skip_possible_out_of_program', $4, 'open', now())`,
+    [
+      id,
+      input.questionId,
+      normalizedUserId,
+      input.sessionId
+        ? `Mobile-study skip: possible out-of-program card. Session: ${input.sessionId}`
+        : "Mobile-study skip: possible out-of-program card.",
+    ],
+  );
+  const rows = (await sql.query("SELECT * FROM card_reports WHERE id = $1", [id])) as Row[];
+  return rows[0] ? mapCardReport(rows[0]) : null;
+}
+
+export async function applyMobileSkipProgramReview(input: {
+  questionId: string;
+  reportId?: string | null;
+  actorUserId: string;
+  decision: "in_program" | "out_of_program" | "uncertain";
+  confidence: number;
+  reasonCode: string;
+  rationale: string;
+  model: string;
+  raw: Record<string, unknown>;
+}) {
+  await ensureDb();
+  const patch = {
+    decision: input.decision,
+    confidence: input.confidence,
+    reasonCode: input.reasonCode,
+    rationale: input.rationale,
+    model: input.model,
+    raw: input.raw,
+  };
+
+  if (input.decision === "out_of_program" && input.confidence >= 0.85) {
+    await sql.query(
+      `UPDATE questions
+       SET program_eligible = false,
+           program_eligibility_reason = $2,
+           program_eligibility_policy_version = $3,
+           program_eligibility_updated_at = now(),
+           admin_note = concat_ws(E'\n', NULLIF(admin_note, ''), $4)
+       WHERE id = $1`,
+      [
+        input.questionId,
+        input.reasonCode || "llm_skip_out_of_program",
+        PROGRAM_ELIGIBILITY_POLICY_VERSION,
+        `mobile_skip_program_review: out_of_program confidence=${input.confidence.toFixed(2)} ${input.rationale}`.slice(0, 1000),
+      ],
+    );
+    if (input.reportId) {
+      await sql.query(
+        `UPDATE card_reports
+         SET status = 'resolved', resolved_at = now(), resolved_by = $2
+         WHERE id = $1`,
+        [input.reportId, input.actorUserId],
+      );
+    }
+  } else if (input.decision === "in_program" && input.confidence >= 0.85) {
+    if (input.reportId) {
+      await sql.query(
+        `UPDATE card_reports
+         SET status = 'dismissed', resolved_at = now(), resolved_by = $2
+         WHERE id = $1`,
+        [input.reportId, input.actorUserId],
+      );
+    }
+  } else if (input.reportId) {
+    await sql.query(
+      `UPDATE card_reports
+       SET status = 'reviewing'
+       WHERE id = $1 AND status = 'open'`,
+      [input.reportId],
+    );
+  }
+
+  await createAgentReviewLog({
+    questionId: input.questionId,
+    actorUserId: input.actorUserId,
+    action: "mobile_skip_program_review",
+    patch,
+  });
 }
 
 export async function listQuestionReports(questionId: string) {

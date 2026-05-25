@@ -311,6 +311,13 @@ export function MobileStudyApp() {
       : summary;
     if (kind === "skip") {
       setSummary(nextSummary);
+      if (currentQuestion) {
+        void jsonFetch(`/api/mobile-study/questions/${currentQuestion.id}/skip`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionId: session?.id ?? null }),
+        }).catch(() => null);
+      }
     }
     setError(null);
     setAnswerState(null);

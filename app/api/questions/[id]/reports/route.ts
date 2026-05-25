@@ -10,6 +10,7 @@ const reasons = new Set<CardReportReason>([
   "formatting_text",
   "wrong_answer",
   "wrong_exam_program",
+  "skip_possible_out_of_program",
 ]);
 
 export async function POST(
