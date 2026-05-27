@@ -1403,14 +1403,14 @@ export async function applyMobileSkipProgramReview(input: {
     raw: input.raw,
   };
 
-  if (input.decision === "out_of_program" && input.confidence >= 0.85) {
+  if (input.decision === "out_of_program" && input.confidence >= 0.8) {
     await sql.query(
       `UPDATE questions
        SET program_eligible = false,
            program_eligibility_reason = $2,
            program_eligibility_policy_version = $3,
            program_eligibility_updated_at = now(),
-           admin_note = concat_ws(E'\n', NULLIF(admin_note, ''), $4)
+           admin_note = concat_ws(E'\n', NULLIF(admin_note, ''), $4::text)
        WHERE id = $1`,
       [
         input.questionId,
