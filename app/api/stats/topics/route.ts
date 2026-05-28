@@ -1,5 +1,5 @@
 import { getAuthUser } from "@/lib/auth";
-import { getLargestTopicClusters, getTopicStats } from "@/lib/exam/repository";
+import { getLargestTopicClusters, getSubjectStats, getTopicStats } from "@/lib/exam/repository";
 
 export const dynamic = "force-dynamic";
 
@@ -9,6 +9,7 @@ export async function GET() {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
   return Response.json({
+    subjects: await getSubjectStats(user.email),
     topics: await getTopicStats(user.email),
     clusters: await getLargestTopicClusters(user.email),
   });

@@ -7,7 +7,7 @@ export type CardReportReason =
   | "wrong_answer"
   | "wrong_exam_program"
   | "skip_possible_out_of_program";
-export type QuestionOrder = "random" | "ordered" | "unseen_first";
+export type QuestionOrder = "random" | "ordered" | "unseen_first" | "last_wrong_first";
 
 export interface Subject {
   id: string;
@@ -81,6 +81,15 @@ export interface TopicClusterStat {
   attempts: number;
   wrong: number;
   correct: number;
+}
+
+export interface SubjectProgressStat {
+  id: string;
+  name: string;
+  totalQuestions: number;
+  reviewedQuestions: number;
+  unseenQuestions: number;
+  lastWrongQuestions: number;
 }
 
 export type SeedTopic = Omit<Topic, "parentTopicId" | "level" | "displayOrder" | "path" | "questionCount"> &

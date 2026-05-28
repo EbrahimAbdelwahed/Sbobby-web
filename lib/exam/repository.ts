@@ -31,6 +31,7 @@ import type {
   SourceRef,
   StudySession,
   Subject,
+  SubjectProgressStat,
   TopicTreeNode,
   TopicClusterStat,
   TopicProgressStat,
@@ -671,6 +672,22 @@ async function questionRows(
   const normalizedUserId = userId ? normalizeUserId(userId) : null;
   const orderSql = (() => {
     if (order === "random") return "RANDOM()";
+    if (order === "last_wrong_first" && normalizedUserId) {
+      return `CASE
+        WHEN (
+          SELECT reorder_re.rating
+          FROM review_events reorder_re
+          WHERE reorder_re.question_id = q.id AND reorder_re.user_id = $${params.length + 1}
+          ORDER BY reorder_re.created_at DESC
+          LIMIT 1
+        ) IN ('wrong', 'partial') THEN 0
+        WHEN EXISTS (
+          SELECT 1 FROM review_events reorder_seen_re
+          WHERE reorder_seen_re.question_id = q.id AND reorder_seen_re.user_id = $${params.length + 1}
+        ) THEN 2
+        ELSE 1
+      END, RANDOM()`;
+    }
     if (order === "unseen_first" && normalizedUserId) {
       return `CASE WHEN EXISTS (
         SELECT 1 FROM review_events reorder_re
@@ -679,7 +696,9 @@ async function questionRows(
     }
     return "q.subject, q.question_text";
   })();
-  const orderParams = order === "unseen_first" && normalizedUserId ? [normalizedUserId] : [];
+  const orderParams = (order === "unseen_first" || order === "last_wrong_first") && normalizedUserId
+    ? [normalizedUserId]
+    : [];
   return (await sql.query(
     `SELECT
        q.*,
@@ -1052,6 +1071,7 @@ export async function getQuestions(filters: {
   topic?: string | null;
   topics?: string[];
   wrongBefore?: boolean;
+  requireProgramEligible?: boolean;
   includeReview?: boolean;
   limit?: number;
   order?: QuestionOrder;
@@ -1065,7 +1085,7 @@ export async function getQuestions(filters: {
   if (!filters.includeReview) {
     clauses.push(
       ...publishedQuestionSql("q", "qe", {
-        requireProgramEligible: !hasExplicitTopicFilters,
+        requireProgramEligible: filters.requireProgramEligible || !hasExplicitTopicFilters,
       }).slice(1),
     );
   }
@@ -2086,6 +2106,42 @@ export async function getTopicStats(userId: string): Promise<TopicProgressStat[]
      LIMIT 12`,
     [userId],
   )) as TopicProgressStat[];
+}
+
+export async function getSubjectStats(userId: string): Promise<SubjectProgressStat[]> {
+  await ensureDb();
+  return (await sql.query(
+    `WITH latest_review AS (
+       SELECT DISTINCT ON (re.question_id)
+         re.question_id,
+         re.rating
+       FROM review_events re
+       WHERE re.user_id = $1
+       ORDER BY re.question_id, re.created_at DESC
+     ),
+     reviewed_questions AS (
+       SELECT DISTINCT question_id
+       FROM review_events
+       WHERE user_id = $1
+     )
+     SELECT
+       s.id,
+       s.name,
+       COUNT(DISTINCT q.id)::int AS "totalQuestions",
+       COUNT(DISTINCT q.id) FILTER (WHERE rq.question_id IS NOT NULL)::int AS "reviewedQuestions",
+       (COUNT(DISTINCT q.id)::int - COUNT(DISTINCT q.id) FILTER (WHERE rq.question_id IS NOT NULL)::int) AS "unseenQuestions",
+       COUNT(DISTINCT q.id) FILTER (WHERE lr.rating IN ('wrong', 'partial'))::int AS "lastWrongQuestions"
+     FROM subjects s
+     LEFT JOIN questions q ON q.subject = s.id
+     LEFT JOIN question_explanations qe ON qe.question_id = q.id
+     LEFT JOIN reviewed_questions rq ON rq.question_id = q.id
+     LEFT JOIN latest_review lr ON lr.question_id = q.id
+     WHERE q.id IS NULL OR ${publishedQuestionSql("q", "qe", { requireProgramEligible: true }).join(" AND ")}
+     GROUP BY s.id, s.name
+     HAVING COUNT(DISTINCT q.id) > 0
+     ORDER BY s.name`,
+    [userId],
+  )) as SubjectProgressStat[];
 }
 
 export async function getLargestTopicClusters(userId: string): Promise<TopicClusterStat[]> {

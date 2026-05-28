@@ -11,6 +11,7 @@ import type {
   Rating,
   StudySession,
   Subject,
+  SubjectProgressStat,
   TopicClusterStat,
   TopicProgressStat,
   TopicWithModule,
@@ -27,6 +28,7 @@ type BootstrapPayload = {
 };
 
 type TopicStatsPayload = {
+  subjects: SubjectProgressStat[];
   topics: TopicProgressStat[];
   clusters: TopicClusterStat[];
 };
@@ -37,6 +39,7 @@ type StudyFilters = {
   topics: string[];
   randomTopicCount: number;
   limit: number;
+  mistakesFirst: boolean;
 };
 
 type AnswerState = {
@@ -108,6 +111,7 @@ export function MobileStudyApp() {
   const [phase, setPhase] = useState<Phase>("loading");
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [topics, setTopics] = useState<TopicWithModule[]>([]);
+  const [subjectStats, setSubjectStats] = useState<SubjectProgressStat[]>([]);
   const [topicStats, setTopicStats] = useState<TopicProgressStat[]>([]);
   const [topicClusters, setTopicClusters] = useState<TopicClusterStat[]>([]);
   const [filters, setFilters] = useState<StudyFilters>({
@@ -116,6 +120,7 @@ export function MobileStudyApp() {
     topics: [],
     randomTopicCount: 3,
     limit: 10,
+    mistakesFirst: false,
   });
   const [questions, setQuestions] = useState<QuestionView[]>([]);
   const [session, setSession] = useState<StudySession | null>(null);
@@ -143,11 +148,13 @@ export function MobileStudyApp() {
         void jsonFetch<TopicStatsPayload>("/api/stats/topics")
           .then((statsPayload) => {
             if (!active) return;
+            setSubjectStats(statsPayload.subjects);
             setTopicStats(statsPayload.topics);
             setTopicClusters(statsPayload.clusters);
           })
           .catch(() => {
             if (!active) return;
+            setSubjectStats([]);
             setTopicStats([]);
             setTopicClusters([]);
           });
@@ -215,14 +222,15 @@ export function MobileStudyApp() {
             subject: resolvedFilters.subject,
             topics: topicsForRequest,
             limit: resolvedFilters.limit,
-            order: "unseen_first",
+            order: resolvedFilters.mistakesFirst ? "last_wrong_first" : "unseen_first",
           },
         }),
       });
       const params = new URLSearchParams({
         subject: resolvedFilters.subject,
         limit: String(resolvedFilters.limit),
-        order: "unseen_first",
+        order: resolvedFilters.mistakesFirst ? "last_wrong_first" : "unseen_first",
+        requireProgramEligible: "1",
       });
       topicsForRequest.forEach((topicId) => params.append("topic", topicId));
       const questionPayload = await jsonFetch<{ questions: QuestionView[] }>(`/api/questions?${params.toString()}`);
@@ -361,6 +369,7 @@ export function MobileStudyApp() {
               clusters={topicClusters}
               subject={filters.subject}
               subjectName={selectedSubject?.name}
+              subjects={subjectStats}
               topics={topicStats}
             />
           </>
@@ -582,6 +591,17 @@ function SetupPanel({
             Priorita alle domande mai incontrate; se non bastano, Sbobby completa con domande gia viste.
           </p>
         </div>
+        <label className="sb-mobile-study-check">
+          <input
+            type="checkbox"
+            checked={filters.mistakesFirst}
+            onChange={(event) => onFiltersChange({ ...filters, mistakesFirst: event.target.checked })}
+          />
+          <span>
+            <strong>Prima le sbagliate</strong>
+            <small>Usa prima le domande sbagliate all&apos;ultima volta, poi colma con nuove.</small>
+          </span>
+        </label>
         <SharedSessionJoinPanel />
         <button
           className="sb-mobile-study-primary"
@@ -672,18 +692,21 @@ function MobileStatsPanel({
   clusters,
   subject,
   subjectName,
+  subjects,
   topics,
 }: {
   clusters: TopicClusterStat[];
   subject: string;
   subjectName?: string;
+  subjects: SubjectProgressStat[];
   topics: TopicProgressStat[];
 }) {
+  const visibleSubjects = subjects.slice(0, 8);
   const subjectTopics = topics.filter((item) => !subject || item.subject === subject).slice(0, 5);
   const topClusters = clusters
     .filter((item) => !subject || item.subject === subject || item.subject === subjectName)
     .slice(0, 4);
-  if (!subjectTopics.length && !topClusters.length) return null;
+  if (!visibleSubjects.length && !subjectTopics.length && !topClusters.length) return null;
 
   return (
     <section className="sb-mobile-study-panel sb-mobile-study-stats">
@@ -691,6 +714,12 @@ function MobileStatsPanel({
         <p className="sb-mobile-study-kicker">Progressi</p>
         <h2>Cluster e argomenti</h2>
       </div>
+      {visibleSubjects.length ? (
+        <div className="sb-mobile-study-stat-group">
+          <h3>Materie</h3>
+          {visibleSubjects.map((item) => <MobileSubjectProgress key={item.id} item={item} />)}
+        </div>
+      ) : null}
       {subjectTopics.length ? (
         <div className="sb-mobile-study-stat-group">
           <h3>Argomenti prioritari</h3>
@@ -704,6 +733,36 @@ function MobileStatsPanel({
         </div>
       ) : null}
     </section>
+  );
+}
+
+function MobileSubjectProgress({ item }: { item: SubjectProgressStat }) {
+  const reviewedPercent = item.totalQuestions > 0 ? Math.round((item.reviewedQuestions / item.totalQuestions) * 100) : 0;
+  const wrongSegmentPercent = item.totalQuestions > 0
+    ? Math.round((item.lastWrongQuestions / item.totalQuestions) * 100)
+    : 0;
+  const doneSegmentPercent = Math.max(0, reviewedPercent - wrongSegmentPercent);
+  const unseenPercent = item.totalQuestions > 0 ? Math.max(0, 100 - reviewedPercent) : 0;
+
+  return (
+    <article className="sb-mobile-study-stat-card">
+      <div className="sb-mobile-study-stat-head">
+        <div>
+          <strong>{item.name}</strong>
+          <span>{item.totalQuestions} domande in programma</span>
+        </div>
+        <em>{reviewedPercent}%</em>
+      </div>
+      <div
+        className="sb-mobile-study-stat-bar"
+        aria-label={`${item.reviewedQuestions} viste, ${item.unseenQuestions} mancanti, ${item.lastWrongQuestions} sbagliate all'ultima vista`}
+      >
+        <span data-kind="done" style={{ width: `${doneSegmentPercent}%` }} />
+        <span data-kind="wrong" style={{ width: `${wrongSegmentPercent}%` }} />
+        <span data-kind="unseen" style={{ width: `${unseenPercent}%` }} />
+      </div>
+      <p>{item.reviewedQuestions} viste · {item.unseenQuestions} mancanti · {item.lastWrongQuestions} sbagliate all&apos;ultima vista</p>
+    </article>
   );
 }
 

@@ -22,6 +22,7 @@ function getTopicFilters(params: URLSearchParams) {
 function getQuestionOrder(value: string | null): QuestionOrder {
   if (value === "ordered") return "ordered";
   if (value === "random") return "random";
+  if (value === "last_wrong_first") return "last_wrong_first";
   return "unseen_first";
 }
 
@@ -39,6 +40,7 @@ export async function GET(request: NextRequest) {
     subject: params.get("subject"),
     topics: topicFilters,
     wrongBefore: asBool(params.get("wrongBefore")),
+    requireProgramEligible: asBool(params.get("requireProgramEligible")),
     includeReview,
     limit: Number(params.get("limit") ?? 100),
     order: getQuestionOrder(params.get("order")),

@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 function getQuestionOrder(value: string | undefined): QuestionOrder {
   if (value === "ordered") return "ordered";
   if (value === "random") return "random";
+  if (value === "last_wrong_first") return "last_wrong_first";
   return "unseen_first";
 }
 
