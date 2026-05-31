@@ -26,6 +26,16 @@ function getQuestionOrder(value: string | null): QuestionOrder {
   return "unseen_first";
 }
 
+function isMobileStudyRequest(request: NextRequest) {
+  const referer = request.headers.get("referer");
+  if (!referer) return false;
+  try {
+    return new URL(referer).pathname.startsWith("/mobile-study");
+  } catch {
+    return referer.includes("/mobile-study");
+  }
+}
+
 export async function GET(request: NextRequest) {
   const user = await getAuthUser();
   if (!user) {
@@ -34,13 +44,14 @@ export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;
   const includeReview = asBool(params.get("includeReview")) && (await isAdminUser(user));
   const topicFilters = getTopicFilters(params);
+  const requireProgramEligible = asBool(params.get("requireProgramEligible")) || isMobileStudyRequest(request);
   const questions = getQuestions({
     userId: user.email,
     questionId: params.get("question"),
     subject: params.get("subject"),
     topics: topicFilters,
     wrongBefore: asBool(params.get("wrongBefore")),
-    requireProgramEligible: asBool(params.get("requireProgramEligible")),
+    requireProgramEligible,
     includeReview,
     limit: Number(params.get("limit") ?? 100),
     order: getQuestionOrder(params.get("order")),

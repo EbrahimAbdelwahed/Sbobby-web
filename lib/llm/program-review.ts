@@ -12,7 +12,7 @@ export type ProgramReviewResult = {
   raw: Record<string, unknown>;
 };
 
-const PROMPT_VERSION = "mobile-skip-program-review-v1";
+const PROMPT_VERSION = "mobile-skip-program-review-v2";
 
 function extractJsonObject(content: string): Record<string, unknown> {
   const trimmed = content.trim();
@@ -73,8 +73,11 @@ export async function reviewQuestionProgramEligibility(question: QuestionView): 
 - Anatomia 2 e sempre fuori programma.
 - Apparato riproduttore e fuori programma.
 - Cavita addomino-pelvica e fuori programma, tranne surrene, pancreas e milza.
+- Pavimento pelvico, diaframma pelvico, perineo, triangolo anale/urogenitale e muscoli/legamenti del perineo sono fuori programma.
+- Orecchio interno, coclea, sistema vestibolare, via acustica, meato acustico interno e VIII nervo cranico/vestibolococleare sono fuori programma quest'anno.
 - Mammella appartiene al torace e non va esclusa come apparato riproduttore.
 - Le domande di anatomia generale, torace, cuore, arti, ossa, articolazioni, sistema nervoso periferico e contenuti non esclusi restano in programma se il topic/testo lo supporta.
+- Se il topic sembra generale ma il testo della domanda riguarda una delle esclusioni sopra, prevale il testo della domanda e devi classificare out_of_program.
 
 Classifica la domanda. Usa "uncertain" se non puoi decidere in modo robusto.
 
