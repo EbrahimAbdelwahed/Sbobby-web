@@ -2,8 +2,16 @@ import type { NextRequest } from "next/server";
 
 import { getAuthUser } from "@/lib/auth";
 import { createStudySession } from "@/lib/exam/repository";
+import type { QuestionOrder } from "@/lib/exam/types";
 
 export const dynamic = "force-dynamic";
+
+function getQuestionOrder(value: string | undefined): QuestionOrder {
+  if (value === "ordered") return "ordered";
+  if (value === "random") return "random";
+  if (value === "last_wrong_first") return "last_wrong_first";
+  return "unseen_first";
+}
 
 export async function POST(request: NextRequest) {
   const user = await getAuthUser();
@@ -11,14 +19,23 @@ export async function POST(request: NextRequest) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
   const body = (await request.json().catch(() => ({}))) as {
-    filters?: Record<string, string | boolean | undefined>;
+    filters?: {
+      subject?: string;
+      topic?: string;
+      topics?: string[];
+      wrongBefore?: boolean;
+      limit?: number;
+      order?: QuestionOrder;
+    };
   };
   const session = createStudySession(
     {
       subject: typeof body.filters?.subject === "string" ? body.filters.subject : undefined,
       topic: typeof body.filters?.topic === "string" ? body.filters.topic : undefined,
-      reliability: typeof body.filters?.reliability === "string" ? body.filters.reliability : undefined,
+      topics: Array.isArray(body.filters?.topics) ? body.filters.topics.filter(Boolean) : undefined,
       wrongBefore: Boolean(body.filters?.wrongBefore),
+      limit: Number.isFinite(body.filters?.limit) ? Math.max(1, Math.min(100, Number(body.filters?.limit))) : undefined,
+      order: getQuestionOrder(body.filters?.order),
     },
     user.email,
   );

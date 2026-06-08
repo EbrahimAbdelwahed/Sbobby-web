@@ -6,7 +6,19 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "verify": "npm run lint && npm run build",
+    "verify:smoke": "node scripts/verify-smoke.mjs",
+    "verify:production": "VERIFY_BASE_URL=https://sbobby-web.vercel.app npm run verify:smoke",
+    "import:windowjudge15": "node scripts/import-windowjudge15.mjs",
+    "normalize:mcq": "node scripts/pipeline/normalize-mcq-cards.mjs",
+    "normalize:mcq:apply": "node scripts/pipeline/normalize-mcq-cards.mjs --apply",
+    "program-eligibility": "node scripts/pipeline/update-program-eligibility.mjs",
+    "program-eligibility:apply": "node scripts/pipeline/update-program-eligibility.mjs --apply",
+    "repair:anatomy-mcq": "node scripts/pipeline/repair-anatomy-mcq-deepseek.mjs",
+    "repair:questions": "node scripts/pipeline/repair-question-db.mjs",
+    "tag:anato2-cusella": "node scripts/pipeline/tag-anato2-cusella-questions.mjs",
+    "verify:mcq": "node scripts/pipeline/verify-mcq-publication.mjs"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

@@ -10,7 +10,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const user = await getAuthUser();
-  if (!user || !isAdminUser(user)) {
+  if (!user || !(await isAdminUser(user))) {
     return Response.json({ error: "Forbidden" }, { status: user ? 403 : 401 });
   }
   const { id } = await params;

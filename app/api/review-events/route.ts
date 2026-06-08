@@ -21,11 +21,15 @@ export async function POST(request: NextRequest) {
   if (!body.questionId || !body.rating || !ratings.has(body.rating)) {
     return Response.json({ error: "questionId and valid rating are required" }, { status: 400 });
   }
-  const event = createReviewEvent({
-    userId: user.email,
-    questionId: body.questionId,
-    sessionId: body.sessionId,
-    rating: body.rating,
-  });
-  return Response.json({ event: await event }, { status: 201 });
+  try {
+    const event = await createReviewEvent({
+      userId: user.email,
+      questionId: body.questionId,
+      sessionId: body.sessionId,
+      rating: body.rating,
+    });
+    return Response.json({ event }, { status: 201 });
+  } catch (error) {
+    return Response.json({ error: error instanceof Error ? error.message : "Question is not available" }, { status: 403 });
+  }
 }
