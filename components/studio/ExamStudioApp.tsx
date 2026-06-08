@@ -168,6 +168,7 @@ export function ExamStudioApp() {
   const [deepLinkMessage, setDeepLinkMessage] = useState<string | null>(null);
 
   const currentQuestion = questions[currentIndex] ?? null;
+  const selectedSubject = subjects.find((item) => item.id === subject);
   const topicMap = useMemo(() => new Map(topics.map((item) => [item.id, item])), [topics]);
   const selectedSet = useMemo(() => new Set(selectedTopicIds), [selectedTopicIds]);
   const selectedTopicLabels = selectedTopicIds
@@ -309,6 +310,10 @@ export function ExamStudioApp() {
   }
 
   async function createSharedSession(limitOverride?: number | "all") {
+    if (limitOverride === "all" && !subject) {
+      setMessage("Scegli una materia prima di creare una sessione con tutte le domande.");
+      return;
+    }
     const payload = await jsonFetch<{ session: SharedStudySession }>("/api/shared-sessions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -462,7 +467,7 @@ export function ExamStudioApp() {
                 Crea sessione condivisa
               </button>
               <button className="sb-button-secondary mt-3 w-full" onClick={() => createSharedSession("all")}>
-                Crea condivisa con tutte
+                {selectedSubject ? `Crea condivisa con tutte di ${selectedSubject.name}` : "Scegli una materia per tutte"}
               </button>
               <div className="mt-3 flex gap-2">
                 <input
