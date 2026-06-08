@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { getAuthUser } from "@/lib/auth";
 import { createSharedStudySession, joinSharedStudySession } from "@/lib/exam/repository";
-import type { QuestionOrder } from "@/lib/exam/types";
+import type { QuestionOrder, StudySession } from "@/lib/exam/types";
 
 export const dynamic = "force-dynamic";
 
@@ -12,13 +12,16 @@ function getQuestionOrder(value: unknown): QuestionOrder {
   return "unseen_first";
 }
 
-function parseFilters(filters: Record<string, unknown> | undefined) {
+function parseFilters(filters: Record<string, unknown> | undefined): StudySession["filters"] {
+  const rawLimit = filters?.limit;
+  const limit: StudySession["filters"]["limit"] =
+    rawLimit === "all" ? "all" : typeof rawLimit === "number" ? rawLimit : undefined;
   return {
     subject: typeof filters?.subject === "string" ? filters.subject : undefined,
     topic: typeof filters?.topic === "string" ? filters.topic : undefined,
     topics: Array.isArray(filters?.topics) ? filters.topics.filter((item): item is string => typeof item === "string") : undefined,
     wrongBefore: Boolean(filters?.wrongBefore),
-    limit: typeof filters?.limit === "number" ? filters.limit : undefined,
+    limit,
     order: getQuestionOrder(filters?.order),
   };
 }

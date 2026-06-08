@@ -78,6 +78,12 @@ const ANATOMIA_2_PATTERNS = [
   /\banato 2 cusella\b/,
 ];
 
+const CUSELLA_NERVOUS_SYSTEM_PATTERNS = [
+  /\banatomia_sistema_nervoso_centrale_e_periferico_prof_cusella\b/,
+  /\bsistema nervoso centrale e periferico prof cusella\b/,
+  /\bsistema nervoso centrale e periferico cusella\b/,
+];
+
 const REPRODUCTIVE_PATTERNS = [
   /\bapparato genitale\b/,
   /\bapparato riproduttivo\b/,
@@ -154,6 +160,14 @@ export function isTopicEligibleForProgram(topic: ProgramEligibilityTopicLike): P
   if (matchesAny(text, ANATOMIA_2_PATTERNS)) {
     return decision(false, "excluded_anatomia_2", "Anatomia 2 is outside the current program", "anatomia_2");
   }
+  if (matchesAny(text, CUSELLA_NERVOUS_SYSTEM_PATTERNS)) {
+    return decision(
+      false,
+      "excluded_cusella_nervous_system",
+      "Cusella nervous-system module is outside the current shared/mobile program",
+      "cusella_nervous_system",
+    );
+  }
 
   const reproductive = matchesAny(text, REPRODUCTIVE_PATTERNS);
   const abdominal = matchesAny(text, ABDOMINO_PELVIC_PATTERNS);
@@ -207,6 +221,10 @@ export function isQuestionEligibleForProgram(input: ProgramEligibilityQuestionIn
   const decisions = topics.map(isTopicEligibleForProgram);
   const hardExclusion = decisions.find((item) => item.reasonCode === "excluded_anatomia_2");
   if (hardExclusion) return hardExclusion;
+  const cusellaNervousSystemExclusion = decisions.find(
+    (item) => item.reasonCode === "excluded_cusella_nervous_system",
+  );
+  if (cusellaNervousSystemExclusion) return cusellaNervousSystemExclusion;
 
   const eligibleCount = decisions.filter((item) => item.eligible).length;
   if (eligibleCount > 0 && eligibleCount < decisions.length) {
@@ -220,5 +238,14 @@ export function isQuestionEligibleForProgram(input: ProgramEligibilityQuestionIn
 }
 
 export function programEligibilitySql(alias = "q") {
-  return [`${alias}.program_eligible = true`];
+  return [
+    `${alias}.program_eligible = true`,
+    `NOT EXISTS (
+      SELECT 1
+      FROM question_topic_map pe_qtm
+      JOIN topics pe_t ON pe_t.id = pe_qtm.topic_id
+      WHERE pe_qtm.question_id = ${alias}.id
+        AND pe_t.module_id = 'anatomia_sistema_nervoso_centrale_e_periferico_prof_cusella'
+    )`,
+  ];
 }

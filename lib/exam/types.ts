@@ -213,7 +213,7 @@ export interface StudySession {
     topic?: string;
     topics?: string[];
     wrongBefore?: boolean;
-    limit?: number;
+    limit?: number | "all";
     order?: QuestionOrder;
   };
   state?: Record<string, unknown> | null;

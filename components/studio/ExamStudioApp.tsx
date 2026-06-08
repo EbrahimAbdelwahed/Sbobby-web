@@ -308,12 +308,18 @@ export function ExamStudioApp() {
     }
   }
 
-  async function createSharedSession() {
+  async function createSharedSession(limitOverride?: number | "all") {
     const payload = await jsonFetch<{ session: SharedStudySession }>("/api/shared-sessions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        filters: { subject, topics: selectedTopicIds, wrongBefore, limit: questionLimit, order: "unseen_first" },
+        filters: {
+          subject,
+          topics: selectedTopicIds,
+          wrongBefore,
+          limit: limitOverride ?? questionLimit,
+          order: "unseen_first",
+        },
         groupReviewEnabled: true,
       }),
     });
@@ -452,8 +458,11 @@ export function ExamStudioApp() {
               <button className="sb-button-secondary mt-3 w-full" onClick={resetSimulation}>
                 Reset simulazione
               </button>
-              <button className="sb-button-secondary mt-3 w-full" onClick={createSharedSession}>
+              <button className="sb-button-secondary mt-3 w-full" onClick={() => createSharedSession()}>
                 Crea sessione condivisa
+              </button>
+              <button className="sb-button-secondary mt-3 w-full" onClick={() => createSharedSession("all")}>
+                Crea condivisa con tutte
               </button>
               <div className="mt-3 flex gap-2">
                 <input

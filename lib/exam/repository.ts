@@ -1845,7 +1845,8 @@ export async function createSharedStudySession(input: {
   groupReviewEnabled: boolean;
 }) {
   await ensureDb();
-  const limit = Math.max(1, Math.min(100, Number(input.filters.limit ?? 20)));
+  const limit =
+    input.filters.limit === "all" ? 1000 : Math.max(1, Math.min(100, Number(input.filters.limit ?? 20)));
   const questions = await getQuestions({
     userId: input.userId,
     subject: input.filters.subject,
@@ -1870,7 +1871,11 @@ export async function createSharedStudySession(input: {
     code,
     createdBy: normalizeUserId(input.userId),
     status: "open",
-    filters: { ...input.filters, limit, order: input.filters.order ?? "unseen_first" },
+    filters: {
+      ...input.filters,
+      limit: input.filters.limit === "all" ? "all" : limit,
+      order: input.filters.order ?? "unseen_first",
+    },
     questionIds: questions.map((question) => question.id),
     groupReviewEnabled: input.groupReviewEnabled,
     createdAt: nowIso(),

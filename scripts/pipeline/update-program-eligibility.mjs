@@ -79,6 +79,11 @@ const ANATOMIA_2_PATTERNS = [
   /\banatomia_2_cusella\b/,
   /\banato 2 cusella\b/,
 ];
+const CUSELLA_NERVOUS_SYSTEM_PATTERNS = [
+  /\banatomia_sistema_nervoso_centrale_e_periferico_prof_cusella\b/,
+  /\bsistema nervoso centrale e periferico prof cusella\b/,
+  /\bsistema nervoso centrale e periferico cusella\b/,
+];
 const REPRODUCTIVE_PATTERNS = [
   /\bapparato genitale\b/,
   /\bapparato riproduttivo\b/,
@@ -152,6 +157,14 @@ function topicDecision(topic) {
   if (matchesAny(text, ANATOMIA_2_PATTERNS)) {
     return decision(false, "excluded_anatomia_2", "Anatomia 2 is outside the current program", "anatomia_2");
   }
+  if (matchesAny(text, CUSELLA_NERVOUS_SYSTEM_PATTERNS)) {
+    return decision(
+      false,
+      "excluded_cusella_nervous_system",
+      "Cusella nervous-system module is outside the current shared/mobile program",
+      "cusella_nervous_system",
+    );
+  }
   const reproductive = matchesAny(text, REPRODUCTIVE_PATTERNS);
   const abdominal = matchesAny(text, ABDOMINO_PELVIC_PATTERNS);
   const exception = matchesAny(text, ABDOMINAL_EXCEPTION_PATTERNS);
@@ -199,6 +212,10 @@ function questionDecision(question) {
   const decisions = topics.map(topicDecision);
   const hardExclusion = decisions.find((item) => item.reasonCode === "excluded_anatomia_2");
   if (hardExclusion) return hardExclusion;
+  const cusellaNervousSystemExclusion = decisions.find(
+    (item) => item.reasonCode === "excluded_cusella_nervous_system",
+  );
+  if (cusellaNervousSystemExclusion) return cusellaNervousSystemExclusion;
   const eligibleCount = decisions.filter((item) => item.eligible).length;
   if (eligibleCount > 0 && eligibleCount < decisions.length) {
     return decision(true, "mixed_topics_has_eligible_topic", "Question has at least one current-program topic", "mixed_topics");
