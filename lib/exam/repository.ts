@@ -1847,13 +1847,14 @@ export async function createSharedStudySession(input: {
   await ensureDb();
   const limit =
     input.filters.limit === "all" ? 1000 : Math.max(1, Math.min(100, Number(input.filters.limit ?? 20)));
+  const order: QuestionOrder = "ordered";
   const questions = await getQuestions({
     userId: input.userId,
     subject: input.filters.subject,
     topics: input.filters.topics ?? (input.filters.topic ? input.filters.topic.split(",") : []),
     wrongBefore: input.filters.wrongBefore,
     limit,
-    order: input.filters.order ?? "unseen_first",
+    order,
   });
   if (questions.length === 0) {
     throw new Error("No published questions match the selected filters");
@@ -1874,7 +1875,7 @@ export async function createSharedStudySession(input: {
     filters: {
       ...input.filters,
       limit: input.filters.limit === "all" ? "all" : limit,
-      order: input.filters.order ?? "unseen_first",
+      order,
     },
     questionIds: questions.map((question) => question.id),
     groupReviewEnabled: input.groupReviewEnabled,

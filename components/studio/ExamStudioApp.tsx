@@ -323,7 +323,7 @@ export function ExamStudioApp() {
           topics: selectedTopicIds,
           wrongBefore,
           limit: limitOverride ?? questionLimit,
-          order: "unseen_first",
+          order: "ordered",
         },
         groupReviewEnabled: true,
       }),
