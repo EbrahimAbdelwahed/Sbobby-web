@@ -12,13 +12,6 @@ async function jsonFetch<T>(url: string, init?: RequestInit): Promise<T> {
   return (await response.json()) as T;
 }
 
-const ratings: Array<{ id: Rating; label: string }> = [
-  { id: "wrong", label: "Sbagliata" },
-  { id: "partial", label: "Parziale" },
-  { id: "correct", label: "Corretta" },
-  { id: "easy", label: "Facile" },
-];
-
 function correctOptionIdFor(question: QuestionView) {
   const answer = question.explanation?.answer.trim().toUpperCase();
   if (!answer) return null;
@@ -130,6 +123,7 @@ function QuestionPanel({
   const hasOptions = question.options.length > 0;
   const selectedIsCorrect = selectedOptionId && correctOptionId ? selectedOptionId === correctOptionId : null;
   const autoRating: Rating | null = selectedIsCorrect == null ? null : selectedIsCorrect ? "correct" : "wrong";
+  const fallbackRating: Rating = openAnswer.trim() ? "partial" : "wrong";
 
   return (
     <article className="sb-panel overflow-hidden">
@@ -195,15 +189,9 @@ function QuestionPanel({
             <p className="mt-2 text-sm leading-6 text-[#40524d]">{question.explanation.explanationShort}</p>
           </div>
           <div className="mt-6 flex flex-wrap gap-2">
-            {autoRating ? (
-              <button className="sb-action-primary" onClick={() => onRate(autoRating, selectedOptionId)}>
-                Registra e continua
-              </button>
-            ) : ratings.map((rating) => (
-                <button key={rating.id} className="sb-button-secondary" onClick={() => onRate(rating.id, selectedOptionId)}>
-                  {rating.label}
-                </button>
-              ))}
+            <button className="sb-action-primary" onClick={() => onRate(autoRating ?? fallbackRating, selectedOptionId)}>
+              Continua
+            </button>
           </div>
         </div>
       ) : null}
